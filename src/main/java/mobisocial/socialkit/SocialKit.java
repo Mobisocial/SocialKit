@@ -17,7 +17,7 @@ public class SocialKit {
     public static class Dungbeetle {
         public static final String LAUNCH_TWO_PLAYERS = "mobisocial.intent.action.LAUNCH_TWO_PLAYERS";
         public static final String LAUNCH_N_PLAYERS = "mobisocial.intent.action.LAUNCH_N_PLAYERS";
-        public static final String INTENT_EXTRA_DUNGBEETLE = "mobisocial.dungbeetle";
+        public static final String INTENT_EXTRA_DUNGBEETLE = "mobisocial.db.FEED";
         public static final String INTENT_EXTRA_USER_NUMBER = "ms.db.id";
 
         private final Intent mIntent;
@@ -35,7 +35,7 @@ public class SocialKit {
         }
 
         public Thread getThread() {
-            return null;
+            return new Thread((Uri)mIntent.getParcelableExtra("mobisocial.db.FEED"));
         }
 
         private Dungbeetle(Intent intent) {
@@ -52,6 +52,11 @@ public class SocialKit {
          */
         public class Thread {
             private JSONObject mState;
+            private Uri mUri;
+
+            private Thread(Uri feedUri) {
+                mUri = feedUri;
+            }
 
             public Junction getJunction() {
                 return null;
