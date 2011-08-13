@@ -2,10 +2,12 @@ package mobisocial.socialkit;
 
 import java.util.Set;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import edu.stanford.junction.api.activity.JunctionActor;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
@@ -21,6 +23,7 @@ public class SocialKit {
         public static final String INTENT_EXTRA_USER_NUMBER = "ms.db.id";
 
         private final Intent mIntent;
+        private final Context mContext;
 
         public static boolean isDungbeetleIntent(Intent intent) {
             return intent.hasExtra(INTENT_EXTRA_DUNGBEETLE);
@@ -38,12 +41,13 @@ public class SocialKit {
             return new Thread((Uri)mIntent.getParcelableExtra("mobisocial.db.FEED"));
         }
 
-        private Dungbeetle(Intent intent) {
+        private Dungbeetle(Context context, Intent intent) {
+            mContext = context;
             mIntent = intent;
         }
 
-        public static Dungbeetle getInstance(Intent intent) {
-            return new Dungbeetle(intent);
+        public static Dungbeetle getInstance(Context context, Intent intent) {
+            return new Dungbeetle(context, intent);
         }
 
         /**
@@ -74,7 +78,12 @@ public class SocialKit {
             }
 
             public void postMessage(JSONObject message) {
-
+                Intent store = new Intent("mobisocial.db.action.PUBLISH");
+                store.putExtras(mIntent.getExtras());
+                // TODO: Whiteboard content provider.
+                //try {
+                    mContext.sendBroadcast(store);
+                //} catch (JSONException e) {}
             }
 
             /**
