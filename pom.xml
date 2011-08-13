@@ -16,6 +16,16 @@
       <version>2.3.3</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mobisocial</groupId><!-- tab complete plz -->
+      <artifactId>easynfc</artifactId>
+      <version>0.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>edu.stanford.prpl.junction</groupId>
+      <artifactId>AndroidJunction</artifactId>
+      <version>0.6.7-SNAPSHOT</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
