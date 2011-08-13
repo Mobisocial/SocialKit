@@ -17,7 +17,10 @@ public class SocialKit {
     public static class Dungbeetle {
         public static final String LAUNCH_TWO_PLAYERS = "mobisocial.intent.action.LAUNCH_TWO_PLAYERS";
         public static final String LAUNCH_N_PLAYERS = "mobisocial.intent.action.LAUNCH_N_PLAYERS";
-        public static final String INTENT_EXTRA_DUNGBEETLE = "mobisocial.dungbeetle"; 
+        public static final String INTENT_EXTRA_DUNGBEETLE = "mobisocial.dungbeetle";
+        public static final String INTENT_EXTRA_USER_NUMBER = "ms.db.id";
+
+        private final Intent mIntent;
 
         public static boolean isDungbeetleIntent(Intent intent) {
             return intent.hasExtra(INTENT_EXTRA_DUNGBEETLE);
@@ -35,8 +38,12 @@ public class SocialKit {
             return null;
         }
 
+        private Dungbeetle(Intent intent) {
+            mIntent = intent;
+        }
+
         public static Dungbeetle getInstance(Intent intent) {
-            return null;
+            return new Dungbeetle(intent);
         }
 
         /**
@@ -71,6 +78,10 @@ public class SocialKit {
              */
             public Set<User> getMembers() {
                 return null;
+            }
+
+            public int getMemberNumber() {
+                return mIntent.getIntExtra(INTENT_EXTRA_USER_NUMBER, -1);
             }
         }
 
