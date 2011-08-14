@@ -77,7 +77,7 @@ public class SocialKit {
                 try {
                     String selection = null;
                     String[] selectionArgs = null;
-                    String order = "timestamp desc LIMIT 1";
+                    String order = "_id desc LIMIT 1"; // TODO: fix.
                     Cursor c = mContext.getContentResolver().query(mUri, null, selection,
                             selectionArgs, order);
                     if (c.moveToFirst()) {
@@ -157,7 +157,7 @@ public class SocialKit {
                     try {
                         String selection = null;
                         String[] selectionArgs = null;
-                        String order = "timestamp desc LIMIT 1";
+                        String order = "_id desc LIMIT 1"; // TODO: fix.
                         Cursor c = mContext.getContentResolver().query(mUri, null,
                                 selection, selectionArgs, order);
                         if (c.moveToFirst()) {
