@@ -5,7 +5,7 @@
 
   <groupId>org.mobisocial</groupId>
   <artifactId>SocialKit</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>SocialKit</name>
   <description>Social APIs for connected applications</description>
@@ -24,7 +24,7 @@
     <dependency>
       <groupId>edu.stanford.prpl.junction</groupId>
       <artifactId>AndroidJunction</artifactId>
-      <version>0.6.7-SNAPSHOT</version>
+      <version>0.7.2-SNAPSHOT</version>
     </dependency>
   </dependencies>
   <build>
@@ -49,6 +49,21 @@
           <source>1.6</source>
           <target>1.6</target>
           <debug>true</debug>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2-beta-1</version>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass>edu.stanford.junction.director.JAVADirector</mainClass>
+            </manifest>
+          </archive>
         </configuration>
       </plugin>
     </plugins>
