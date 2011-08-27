@@ -179,8 +179,11 @@ public class Feed {
         if (!cursor.moveToFirst()) {
             return users; // TODO: doesn't include local user.
         }
+
+        int nameIndex = cursor.getColumnIndex("name");
         while (!cursor.isAfterLast()) {
-            users.add(new User("Mr. BFF"));
+            String name = cursor.getString(nameIndex);
+            users.add(new User(name));
             cursor.moveToNext();
         }
         return users;
