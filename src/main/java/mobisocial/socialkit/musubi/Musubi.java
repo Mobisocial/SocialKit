@@ -12,16 +12,16 @@ import android.os.Looper;
 import android.os.Message;
 
 /**
- * Use the DungBeetle APIs in your application. TODO TODO TODO launched from
- * personal app feed. mMusubi.getParentFeed() : getMembers, postContent
- * mMusubi.getAppFeed() : getMembers, setState, getState, onState
+ * Use the DungBeetle APIs in your application.
  */
 public class Musubi {
     static final String TAG = "SocialKit-DB";
+    public static final String AUTHORITY =
+            "edu.stanford.mobisocial.dungbeetle.DungBeetleContentProvider";
     public static final String LAUNCH_TWO_PLAYERS = "mobisocial.intent.action.TWO_PLAYERS";
     public static final String LAUNCH_N_PLAYERS = "mobisocial.intent.action.N_PLAYERS";
     public static final String INTENT_EXTRA_FEED = "mobisocial.db.FEED";
-    public static final String INTENT_EXTRA_USER_NUMBER = "ms.db.id";
+
     private final Intent mIntent;
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;

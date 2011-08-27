@@ -3,7 +3,17 @@ package mobisocial.socialkit.musubi;
 import org.json.JSONObject;
 
 public class User {
-        public JSONObject getAttribute(String id) {
-            return null;
-        }
+    private final String mName;
+
+    public User(String name) {
+        mName = name;
     }
+
+    public String getName() {
+        return mName;
+    }
+
+    public JSONObject getAttribute(String id) {
+        return null;
+    }
+}

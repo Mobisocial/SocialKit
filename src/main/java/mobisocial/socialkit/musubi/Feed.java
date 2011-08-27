@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 import edu.stanford.junction.Junction;
 import edu.stanford.junction.JunctionException;
 import edu.stanford.junction.android.AndroidJunctionMaker;
@@ -22,13 +23,8 @@ import edu.stanford.junction.api.activity.JunctionActor;
 import edu.stanford.junction.api.messaging.MessageHeader;
 
 /**
- * A Musubi Feed.
+ * A Musubi feed of objects.
  * 
- * 
- *      BaseFeed
- *  AsciiArt   TicTacToe
- *  
- *  FilteredFeed() { getTypes() { return {"appstate","@renderable",...} } }
  */
 public class Feed {
     static final String TAG = Musubi.TAG;
@@ -36,6 +32,7 @@ public class Feed {
     private final Musubi mMusubi;
     private final Cursor mCursor;
     private final Uri mUri;
+    private final String mFeedName;
     private final Set<StateObserver> mObservers = new HashSet<StateObserver>();
     private boolean mObservingProvider = false;
     JunctionActor mActor;
@@ -44,6 +41,7 @@ public class Feed {
     Feed(Musubi musubi, Uri feedUri) {
         mMusubi = musubi;
         mUri = feedUri;
+        mFeedName = mUri.getLastPathSegment();
 
         mContentObserver = new ContentObserver(new Handler(
                 mMusubi.getContext().getMainLooper())) {
@@ -163,7 +161,29 @@ public class Feed {
      * @return
      */
     public Set<User> getMembers() {
-        return null;
+        Uri feedMembersUri = Uri.parse("content://" + Musubi.AUTHORITY +
+                "/feed_members/" + mFeedName);
+        Cursor cursor;
+        try {
+            String selection = null;
+            String[] selectionArgs = null;
+            String order = null;
+            Toast.makeText(mMusubi.getContext(), "making query", 500).show();
+            cursor = mMusubi.getContext().getContentResolver().query(feedMembersUri, null,
+                    selection, selectionArgs, order);
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting membership", e);
+            return null;
+        }
+        HashSet<User> users = new HashSet<User>();
+        if (!cursor.moveToFirst()) {
+            return users; // TODO: doesn't include local user.
+        }
+        while (!cursor.isAfterLast()) {
+            users.add(new User("Mr. BFF"));
+            cursor.moveToNext();
+        }
+        return users;
     }
 
     private void doContentChanged() {
