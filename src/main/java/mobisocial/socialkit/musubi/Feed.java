@@ -120,38 +120,67 @@ public class Feed {
     }
 
     public void postObject(JSONObject appState) {
-        postObject(appState, new JSONObject());
+        JSONObject b = new JSONObject();
+        try {
+            b.put("state", b);
+        } catch (JSONException e) {}
+        postInternal(b);
     }
 
     public void postObjectWithHtml(JSONObject appState, String thumbnailHtml) {
         JSONObject b = new JSONObject();
         try {
             b.put("html", thumbnailHtml);
+            b.put("state", appState);
         } catch (JSONException e) {
         }
-        postObject(appState, b);
+        postInternal(b);
+    }
+
+    public void postObjectWithImage(JSONObject appState, String b64Thumbnail) {
+        JSONObject b = new JSONObject();
+        try {
+            
+            b.put("b64jpgthumb", b64Thumbnail);
+            b.put("state", appState);
+        } catch (JSONException e) {
+        }
+        postInternal(b);
     }
 
     public void postObjectWithText(JSONObject appState, String thumbnailTxt) {
         JSONObject b = new JSONObject();
         try {
             b.put("txt", thumbnailTxt);
+            b.put("state", appState);
         } catch (JSONException e) {
         }
-        postObject(appState, b);
+        postInternal(b);
     }
 
-    private void postObject(JSONObject appState, JSONObject meta) {
+    public void postAppState(AppState state) {
+        JSONObject b = new JSONObject();
         try {
-            meta.put("state", appState);
-        } catch (Exception e) {
-            Log.wtf(TAG, "Error creating json for database");
-            return;
-        }
+            if (state.mState != null) {
+                b.put("state", state.mState);
+            }
+            if (state.mThumbnailText != null) {
+                b.put("txt", state.mThumbnailText);
+            }
+            if (state.mThumbnailImage != null) {
+                b.put("b64jpgthumb", state.mThumbnailImage);
+            }
+            if (state.mArg != null) {
+                b.put("arg", state.mArg);
+            }
+        } catch (JSONException e) {}
+        postInternal(b);
+    }
 
+    private void postInternal(JSONObject obj) {
         ContentValues values = new ContentValues();
         values.put("type", TYPE_APP_STATE);
-        values.put("json", meta.toString());
+        values.put("json", obj.toString());
         mMusubi.getContentProviderThread().insert(mUri, values);
     }
 
