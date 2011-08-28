@@ -30,7 +30,6 @@ public class Feed {
     static final String TAG = Musubi.TAG;
     private static final String TYPE_APP_STATE = "appstate";
     private final Musubi mMusubi;
-    private final Cursor mCursor;
     private final Uri mUri;
     private final String mFeedName;
     private final Set<StateObserver> mObservers = new HashSet<StateObserver>();
@@ -51,19 +50,6 @@ public class Feed {
                 doContentChanged();
             }
         };
-
-        Cursor cursor;
-        try {
-            String selection = null;
-            String[] selectionArgs = null;
-            String order = "_id desc LIMIT 1"; // TODO: fix.
-            cursor = mMusubi.getContext().getContentResolver().query(mUri, null, selection,
-                    selectionArgs, order);
-        } catch (Exception e) {
-            Log.e(TAG, "Error loading app state", e);
-            cursor = null;
-        }
-        mCursor = cursor;
     }
 
     public Junction getJunction() {
@@ -85,8 +71,9 @@ public class Feed {
     }
 
     public JSONObject getLatestState() {
-        if (mCursor.moveToFirst()) {
-            String entry = mCursor.getString(mCursor.getColumnIndexOrThrow("json"));
+        Cursor cursor = query();
+        if (cursor.moveToFirst()) {
+            String entry = cursor.getString(cursor.getColumnIndexOrThrow("json"));
             try {
                 JSONObject wrapper = new JSONObject(entry);
                 return wrapper.optJSONObject("state");
@@ -107,10 +94,10 @@ public class Feed {
     }
 
     /**
-     * @hide
+     * Issues a query over this feed's objects.
      */
-    public JSONObject getLatest(String type) {
-        return null;
+    public Cursor query() {
+        return query(null, null);
     }
 
     public void registerStateObserver(StateObserver observer) {
@@ -122,10 +109,6 @@ public class Feed {
             mMusubi.getContext().getContentResolver().registerContentObserver(mUri, false,
                     mContentObserver);
         }
-    }
-
-    public Cursor getCursor() {
-        return mCursor;
     }
 
     public void postObject(JSONObject appState) {
@@ -170,17 +153,17 @@ public class Feed {
     public void postAppState(AppState state) {
         JSONObject b = new JSONObject();
         try {
-            if (state.mState != null) {
-                b.put("state", state.mState);
+            if (state.state != null) {
+                b.put("state", state.state);
             }
-            if (state.mThumbnailText != null) {
-                b.put("txt", state.mThumbnailText);
+            if (state.thumbnailText != null) {
+                b.put("txt", state.thumbnailText);
             }
-            if (state.mThumbnailImage != null) {
-                b.put("b64jpgthumb", state.mThumbnailImage);
+            if (state.thumbnailImage != null) {
+                b.put("b64jpgthumb", state.thumbnailImage);
             }
-            if (state.mArg != null) {
-                b.put("arg", state.mArg);
+            if (state.arg != null) {
+                b.put("arg", state.arg);
             }
         } catch (JSONException e) {}
         postInternal(b);

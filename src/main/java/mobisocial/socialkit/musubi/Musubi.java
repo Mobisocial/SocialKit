@@ -26,7 +26,7 @@ public class Musubi {
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
 
-    public static boolean isDungbeetleIntent(Intent intent) {
+    public static boolean isMusubiIntent(Intent intent) {
         return intent.hasExtra(INTENT_EXTRA_FEED);
     }
 

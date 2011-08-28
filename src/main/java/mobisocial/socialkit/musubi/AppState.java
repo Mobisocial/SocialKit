@@ -3,18 +3,18 @@ package mobisocial.socialkit.musubi;
 import org.json.JSONObject;
 
 public class AppState {
-    JSONObject mState;
-    String mThumbnailText;
-    String mThumbnailImage;
-    String mThumbnailHtml;
-    String mArg;
+    public JSONObject state;
+    public String thumbnailText;
+    public String thumbnailImage;
+    public String thumbnailHtml;
+    public String arg;
 
     private AppState() {
         
     }
 
     public AppState(JSONObject state) {
-        mState = state;
+        this.state = state;
     }
 
     public static class Builder {
@@ -24,27 +24,27 @@ public class AppState {
             mmAppState = new AppState();
         }
         public Builder setState(JSONObject state) {
-            mmAppState.mState = state;
+            mmAppState.state = state;
             return this;
         }
 
         public Builder setThumbnailText(String text) {
-            mmAppState.mThumbnailText = text;
+            mmAppState.thumbnailText = text;
             return this;
         }
 
         public Builder setThumbnailB64Image(String img) {
-            mmAppState.mThumbnailImage = img;
+            mmAppState.thumbnailImage = img;
             return this;
         }
 
         public Builder setThumbnailHtml(String html) {
-            mmAppState.mThumbnailHtml = html;
+            mmAppState.thumbnailHtml = html;
             return this;
         }
 
         public Builder setArgument(String arg) {
-            mmAppState.mArg = arg;
+            mmAppState.arg = arg;
             return this;
         }
 
