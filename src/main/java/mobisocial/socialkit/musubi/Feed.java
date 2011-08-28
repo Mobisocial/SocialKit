@@ -98,6 +98,15 @@ public class Feed {
     }
 
     /**
+     * Issues a query over this feed's objects.
+     */
+    public Cursor query(String selection, String[] selectionArgs) {
+        String order = "_id desc LIMIT 1"; // TODO: fix.
+        return mMusubi.getContext().getContentResolver().query(mUri, null, selection,
+                selectionArgs, order);
+    }
+
+    /**
      * @hide
      */
     public JSONObject getLatest(String type) {
