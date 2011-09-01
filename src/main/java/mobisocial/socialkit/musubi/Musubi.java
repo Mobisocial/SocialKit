@@ -1,11 +1,14 @@
 
 package mobisocial.socialkit.musubi;
 
+import java.util.List;
+
 import org.json.JSONObject;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -25,6 +28,13 @@ public class Musubi {
     private final Intent mIntent;
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
+
+    public static boolean isMusubiInstalled(Context context) {
+        final Intent intent = new Intent(Intent.ACTION_MAIN, null);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        intent.setPackage("edu.stanford.mobisocial.dungbeetle");
+        return context.getPackageManager().queryIntentActivities( intent, 0).size() > 0;
+    }
 
     public static boolean isMusubiIntent(Intent intent) {
         return intent.hasExtra(INTENT_EXTRA_FEED);

@@ -15,7 +15,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
-import android.widget.Toast;
 import edu.stanford.junction.Junction;
 import edu.stanford.junction.JunctionException;
 import edu.stanford.junction.android.AndroidJunctionMaker;
@@ -176,12 +175,36 @@ public class Feed {
         mMusubi.getContentProviderThread().insert(mUri, values);
     }
 
+    public User getLocalUser() {
+        Uri feedMembersUri = Uri.parse("content://" + Musubi.AUTHORITY +
+                "/local_user/" + mFeedName);
+        Cursor cursor;
+        try {
+            String selection = null;
+            String[] selectionArgs = null;
+            String order = null;
+            cursor = mMusubi.getContext().getContentResolver().query(feedMembersUri, null,
+                    selection, selectionArgs, order);
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting local user", e);
+            return null;
+        }
+
+        if (!cursor.moveToFirst()) {
+            return null;
+        }
+
+        int nameIndex = cursor.getColumnIndex("name");
+        int pubKeyIndex = cursor.getColumnIndex("public_key");
+        String name = cursor.getString(nameIndex);
+        String pubKey = cursor.getString(pubKeyIndex);
+        return new User(name, pubKey);
+    }
+
     /**
-     * List of participants available to this thread.
-     * 
-     * @return
+     * List of remote participants available to this feed.
      */
-    public Set<User> getMembers() {
+    public Set<User> getRemoteUsers() {
         Uri feedMembersUri = Uri.parse("content://" + Musubi.AUTHORITY +
                 "/feed_members/" + mFeedName);
         Cursor cursor;
@@ -189,7 +212,6 @@ public class Feed {
             String selection = null;
             String[] selectionArgs = null;
             String order = null;
-            Toast.makeText(mMusubi.getContext(), "making query", 500).show();
             cursor = mMusubi.getContext().getContentResolver().query(feedMembersUri, null,
                     selection, selectionArgs, order);
         } catch (Exception e) {
@@ -202,9 +224,11 @@ public class Feed {
         }
 
         int nameIndex = cursor.getColumnIndex("name");
+        int pubKeyIndex = cursor.getColumnIndex("public_key");
         while (!cursor.isAfterLast()) {
             String name = cursor.getString(nameIndex);
-            users.add(new User(name));
+            String pubKey = cursor.getString(pubKeyIndex);
+            users.add(new User(name, pubKey));
             cursor.moveToNext();
         }
         return users;

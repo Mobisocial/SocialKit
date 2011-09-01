@@ -1,11 +1,11 @@
 package mobisocial.socialkit.musubi;
 
-import org.json.JSONObject;
-
 public class User {
+    private final long mId;
     private final String mName;
 
-    public User(String name) {
+    User(String name, String publicKey) {
+        mId = publicKey.hashCode();
         mName = name;
     }
 
@@ -13,7 +13,7 @@ public class User {
         return mName;
     }
 
-    public JSONObject getAttribute(String id) {
-        return null;
+    public long getId() {
+        return mId;
     }
 }
