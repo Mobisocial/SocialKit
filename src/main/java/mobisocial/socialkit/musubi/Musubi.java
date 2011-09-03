@@ -19,8 +19,7 @@ import android.os.Message;
  */
 public class Musubi {
     static final String TAG = "SocialKit-DB";
-    public static final String AUTHORITY =
-            "edu.stanford.mobisocial.dungbeetle.DungBeetleContentProvider";
+    public static final String AUTHORITY = "org.mobisocial.db";
     public static final String LAUNCH_TWO_PLAYERS = "mobisocial.intent.action.TWO_PLAYERS";
     public static final String LAUNCH_N_PLAYERS = "mobisocial.intent.action.N_PLAYERS";
     public static final String INTENT_EXTRA_FEED = "mobisocial.db.FEED";
