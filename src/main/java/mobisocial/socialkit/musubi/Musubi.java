@@ -1,6 +1,7 @@
 
 package mobisocial.socialkit.musubi;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.ContentValues;
@@ -10,6 +11,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 
 /**
  * Use the DungBeetle APIs in your application.
@@ -20,6 +22,7 @@ public class Musubi {
 
     public static final String EXTRA_FEED_URI = "mobisocial.db.FEED";
 
+    private static boolean DBG = true;
     private final Intent mIntent;
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
@@ -114,11 +117,12 @@ public class Musubi {
         }
     }
 
-    public Object getMultiplayer(Intent details) {
-        return new Multiplayer(details);
+    public Object getMultiplayer(Context context, Intent details) {
+        return new Multiplayer(context, details);
     }
 
     public static class Multiplayer {
+        private final Musubi mMusubi;
         public static final String ACTION_TWO_PLAYERS = "mobisocial.intent.action.TWO_PLAYERS";
         public static final String ACTION_MULTIPLAYER = "mobisocial.intent.action.MULTIPLAYER";
 
@@ -126,31 +130,69 @@ public class Musubi {
         public static final String EXTRA_LOCAL_MEMBER_INDEX = "local_member_index";
         public static final String EXTRA_GLOBAL_MEMBER_CURSOR = "global_member_cursor";
 
+        public static final String OBJ_MEMBER_CURSOR = "member_cursor";
+
         final Intent mLaunchIntent;
         final String[] mMembers;
         final Uri mFeedUri;
         final int mLocalMemberIndex;
-        final int mGlobalMemberCursor;
+        int mGlobalMemberCursor;
+        private StateObserver mAppStateObserver;
 
-        public Multiplayer(Intent intent) {
+        public Multiplayer(Context context, Intent intent) {
+            mMusubi = Musubi.getInstance(context, intent);
             mLaunchIntent = intent;
             // TODO: intent.getStringArrayExtra("membership") ~ fixed, open, etc.
             mMembers = intent.getStringArrayExtra(EXTRA_MEMBERS);
             mFeedUri = intent.getParcelableExtra(EXTRA_FEED_URI);
             mLocalMemberIndex = intent.getIntExtra(EXTRA_LOCAL_MEMBER_INDEX, -1);
             mGlobalMemberCursor = intent.getIntExtra(EXTRA_GLOBAL_MEMBER_CURSOR, -1);
+
+            mMusubi.getFeed().registerStateObserver(mInternalStateObserver);
         }
 
         public int getLocalMemberIndex() {
             return mLocalMemberIndex;
         }
 
-        public boolean isMyTurn() {
-            return true;
+        public int getGlobalMemberCursor() {
+            return mGlobalMemberCursor;
         }
 
-        public JSONObject getState() {
-            return null;
+        public boolean isMyTurn() {
+            Log.d(TAG, "Checking for turn: " + mLocalMemberIndex + " vs " + mGlobalMemberCursor);
+            return mLocalMemberIndex == mGlobalMemberCursor;
         }
+
+        public void takeTurn(JSONObject state, String thumbHtml) {
+            try {
+                state.put(OBJ_MEMBER_CURSOR,
+                        (mGlobalMemberCursor + 1) % mMembers.length);
+                if (DBG) Log.d(TAG, "Sent cursor " + state.optInt(OBJ_MEMBER_CURSOR));
+            } catch (JSONException e) {
+                Log.e(TAG, "Failed to update cursor.", e);
+            }
+            mMusubi.getFeed().postObjectWithHtml(state, thumbHtml);
+        }
+
+        public void setStateObserver(StateObserver observer) {
+            mAppStateObserver = observer;
+        }
+
+        private final StateObserver mInternalStateObserver = new StateObserver() {
+            @Override
+            public void onUpdate(JSONObject newState) {
+                try {
+                    mGlobalMemberCursor = newState.getInt(OBJ_MEMBER_CURSOR);
+                    if (DBG) Log.d(TAG, "Updated cursor to " + mGlobalMemberCursor);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed to get member_cursor.", e);
+                }
+
+                if (mAppStateObserver != null) {
+                    mAppStateObserver.onUpdate(newState);
+                }
+            }
+        };
     }
 }
