@@ -125,4 +125,11 @@ public class TurnBasedMultiplayer extends Multiplayer {
             }
         }
     };
+
+    /**
+     * Returns the array of member identifiers.
+     */
+    public String[] getMembers() {
+        return mMembers;
+    }
 }
