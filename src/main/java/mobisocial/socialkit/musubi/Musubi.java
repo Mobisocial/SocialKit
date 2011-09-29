@@ -1,14 +1,11 @@
 
 package mobisocial.socialkit.musubi;
 
-import java.util.List;
-
 import org.json.JSONObject;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -20,9 +17,8 @@ import android.os.Message;
 public class Musubi {
     static final String TAG = "SocialKit-DB";
     public static final String AUTHORITY = "org.mobisocial.db";
-    public static final String LAUNCH_TWO_PLAYERS = "mobisocial.intent.action.TWO_PLAYERS";
-    public static final String LAUNCH_N_PLAYERS = "mobisocial.intent.action.N_PLAYERS";
-    public static final String INTENT_EXTRA_FEED = "mobisocial.db.FEED";
+
+    public static final String EXTRA_FEED_URI = "mobisocial.db.FEED";
 
     private final Intent mIntent;
     private final Context mContext;
@@ -36,7 +32,7 @@ public class Musubi {
     }
 
     public static boolean isMusubiIntent(Intent intent) {
-        return intent.hasExtra(INTENT_EXTRA_FEED);
+        return intent.hasExtra(EXTRA_FEED_URI);
     }
 
     /**
@@ -54,7 +50,7 @@ public class Musubi {
     }
 
     public Feed getFeed() {
-        return new Feed(this, (Uri) mIntent.getParcelableExtra(INTENT_EXTRA_FEED));
+        return new Feed(this, (Uri) mIntent.getParcelableExtra(EXTRA_FEED_URI));
     }
 
     public Feed getFeed(Uri feedUri) {
@@ -115,6 +111,46 @@ public class Musubi {
                 this.uri = uri;
                 this.cv = cv;
             }
+        }
+    }
+
+    public Object getMultiplayer(Intent details) {
+        return new Multiplayer(details);
+    }
+
+    public static class Multiplayer {
+        public static final String ACTION_TWO_PLAYERS = "mobisocial.intent.action.TWO_PLAYERS";
+        public static final String ACTION_MULTIPLAYER = "mobisocial.intent.action.MULTIPLAYER";
+
+        public static final String EXTRA_MEMBERS = "members";
+        public static final String EXTRA_LOCAL_MEMBER_INDEX = "local_member_index";
+        public static final String EXTRA_GLOBAL_MEMBER_CURSOR = "global_member_cursor";
+
+        final Intent mLaunchIntent;
+        final String[] mMembers;
+        final Uri mFeedUri;
+        final int mLocalMemberIndex;
+        final int mGlobalMemberCursor;
+
+        public Multiplayer(Intent intent) {
+            mLaunchIntent = intent;
+            // TODO: intent.getStringArrayExtra("membership") ~ fixed, open, etc.
+            mMembers = intent.getStringArrayExtra(EXTRA_MEMBERS);
+            mFeedUri = intent.getParcelableExtra(EXTRA_FEED_URI);
+            mLocalMemberIndex = intent.getIntExtra(EXTRA_LOCAL_MEMBER_INDEX, -1);
+            mGlobalMemberCursor = intent.getIntExtra(EXTRA_GLOBAL_MEMBER_CURSOR, -1);
+        }
+
+        public int getLocalMemberIndex() {
+            return mLocalMemberIndex;
+        }
+
+        public boolean isMyTurn() {
+            return true;
+        }
+
+        public JSONObject getState() {
+            return null;
         }
     }
 }
