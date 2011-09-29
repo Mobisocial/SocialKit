@@ -26,6 +26,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
 
     public static final String OBJ_MEMBER_CURSOR = "member_cursor";
 
+    private JSONObject mLatestState;
     final Intent mLaunchIntent;
     final String[] mMembers;
     final Uri mFeedUri;
@@ -45,34 +46,65 @@ public class TurnBasedMultiplayer extends Multiplayer {
         mFeed.registerStateObserver(mInternalStateObserver);
     }
 
+    /**
+     * Returns the index within the membership list that represents the
+     * local user.
+     */
     public int getLocalMemberIndex() {
         return mLocalMemberIndex;
     }
 
+    /**
+     * Returns a cursor within the membership list that points to
+     * the user with control of the state machine.
+     */
     public int getGlobalMemberCursor() {
         return mGlobalMemberCursor;
     }
 
+    /**
+     * Returns true if the local member index equals the membership cursor.
+     * In other words, its the local user's turn.
+     */
     public boolean isMyTurn() {
         Log.d(TAG, "Checking for turn: " + mLocalMemberIndex + " vs " + mGlobalMemberCursor);
         return mLocalMemberIndex == mGlobalMemberCursor;
     }
 
-    public void takeTurn(JSONObject state, String thumbHtml) {
+    /**
+     * Updates the state machine with the user's move. The state machine
+     * is only updated if it is the local user's turn.
+     * @return true if a turn was taken.
+     */
+    public boolean takeTurn(JSONObject state, String thumbHtml) {
+        if (!isMyTurn()) {
+            return false;
+        }
         try {
-            state.put(OBJ_MEMBER_CURSOR,
-                    (mGlobalMemberCursor + 1) % mMembers.length);
-            if (DBG) Log.d(TAG, "Sent cursor " + state.optInt(OBJ_MEMBER_CURSOR));
+            mGlobalMemberCursor = (mGlobalMemberCursor + 1) % mMembers.length; 
+            state.put(OBJ_MEMBER_CURSOR, mGlobalMemberCursor);
+            mLatestState = state;
         } catch (JSONException e) {
             Log.e(TAG, "Failed to update cursor.", e);
         }
         mFeed.postObjectWithHtml(state, thumbHtml);
+        if (DBG) Log.d(TAG, "Sent cursor " + state.optInt(OBJ_MEMBER_CURSOR));
+        return true;
     }
 
+    /**
+     * Returns the latest application state.
+     */
     public JSONObject getLatestState() {
-        return mFeed.getLatestState();
+        if (mLatestState == null) {
+            mLatestState = mFeed.getLatestState();
+        }
+        return mLatestState;
     }
 
+    /**
+     * Registers a callback to observe changes to the state machine.
+     */
     public void setStateObserver(StateObserver observer) {
         mAppStateObserver = observer;
     }
@@ -81,6 +113,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
         @Override
         public void onUpdate(JSONObject newState) {
             try {
+                mLatestState = newState;
                 mGlobalMemberCursor = newState.getInt(OBJ_MEMBER_CURSOR);
                 if (DBG) Log.d(TAG, "Updated cursor to " + mGlobalMemberCursor);
             } catch (JSONException e) {
