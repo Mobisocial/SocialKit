@@ -114,4 +114,14 @@
       <url>http://mobisocial.stanford.edu:8081/nexus/content/repositories/snapshots</url>
     </snapshotRepository>
   </distributionManagement>
+  <repositories>
+    <repository>
+      <id>prpl-public</id>
+      <name>PrPl Public Repository</name>
+      <url>http://prpl.stanford.edu:8081/nexus/content/groups/public</url>
+      <releases> <enabled>true</enabled> </releases>
+      <snapshots> <enabled>true</enabled> </snapshots>
+      <layout>default</layout>
+    </repository>
+  </repositories>
 </project>
