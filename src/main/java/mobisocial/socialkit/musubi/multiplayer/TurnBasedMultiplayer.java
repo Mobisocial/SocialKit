@@ -14,9 +14,7 @@ import android.net.Uri;
 import android.util.Log;
 
 /**
- * Manages the state machine associated with a turn-based,
- * round robin multiplayer application.
- *
+ * Manages the state machine associated with a turn-based multiplayer application.
  */
 public class TurnBasedMultiplayer extends Multiplayer {
     public static final String OBJ_MEMBER_CURSOR = "member_cursor";
@@ -99,8 +97,9 @@ public class TurnBasedMultiplayer extends Multiplayer {
     }
 
     /**
-     * Updates the state machine with the user's move. The state machine
-     * is only updated if it is the local user's turn.
+     * Updates the state machine with the user's move, passing control
+     * to nextPlayer. The state machine is only updated if it is the
+     * local user's turn.
      * @return true if a turn was taken.
      */
     public boolean takeTurn(int nextPlayer, JSONObject state, String thumbHtml) {
@@ -117,6 +116,17 @@ public class TurnBasedMultiplayer extends Multiplayer {
         mFeed.postObjectWithHtml(state, thumbHtml);
         if (DBG) Log.d(TAG, "Sent cursor " + state.optInt(OBJ_MEMBER_CURSOR));
         return true;
+    }
+
+    /**
+     * Updates the state machine with the user's move, passing control to
+     * the next player in {@link #getMembers()}. The state machine
+     * is only updated if it is the local user's turn.
+     * @return true if a turn was taken.
+     */
+    public boolean takeTurn(JSONObject state, String thumbHtml) {
+        int next = (mGlobalMemberCursor + 1) % mMembers.length;
+        return takeTurn(next, state, thumbHtml);
     }
 
     /**
