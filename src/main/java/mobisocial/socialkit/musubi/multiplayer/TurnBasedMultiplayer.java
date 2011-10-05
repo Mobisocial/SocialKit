@@ -25,10 +25,11 @@ public class TurnBasedMultiplayer extends Multiplayer {
     final Intent mLaunchIntent;
     final String[] mMembers;
     final Uri mFeedUri;
+    final String mLocalMember;
     final int mLocalMemberIndex;
-    int mGlobalMemberCursor;
     private StateObserver mAppStateObserver;
     private final Feed mFeed;
+    private int mGlobalMemberCursor;
 
     public TurnBasedMultiplayer(Context context, Intent intent) {
         mLaunchIntent = intent;
@@ -36,6 +37,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
         mFeed = Musubi.getInstance(context, intent).getFeed(mFeedUri);
         mFeed.registerStateObserver(mInternalStateObserver);
         JSONObject state = getLatestState();
+        mLocalMember = User.getLocalUser(context, mFeedUri).getId();
 
         if (state == null) {
             // TODO: Temporary.
@@ -49,24 +51,22 @@ public class TurnBasedMultiplayer extends Multiplayer {
         
         if (state == null) {
             Log.e(TAG, "App state is null.");
-            mLocalMemberIndex = -1;
             mMembers = null;
+            mLocalMemberIndex = -1;
             return;
         }
         if (!state.has(OBJ_MEMBERSHIP)) {
             Log.e(TAG, "App state has no members.");
-            mLocalMemberIndex = -1;
             mMembers = null;
+            mLocalMemberIndex = -1;
             return;
         }
         JSONArray memberArr = state.optJSONArray(OBJ_MEMBERSHIP);          
         mMembers = new String[memberArr.length()];
         int localMemberIndex = -1;
-        String localMember = User.getLocalUser(context, mFeedUri).getId();
-        Log.d(TAG, "GOT THE LOCAL USER " + localMember);
         for (int i = 0; i < memberArr.length(); i++) {
             mMembers[i] = memberArr.optString(i);
-            if (mMembers[i].equals(localMember)) {
+            if (mMembers[i].equals(mLocalMember)) {
                 localMemberIndex = i;
             }
         }
@@ -95,7 +95,6 @@ public class TurnBasedMultiplayer extends Multiplayer {
      * In other words, its the local user's turn.
      */
     public boolean isMyTurn() {
-        Log.d(TAG, "Checking for turn: " + mLocalMemberIndex + " vs " + mGlobalMemberCursor);
         return mLocalMemberIndex == mGlobalMemberCursor;
     }
 
@@ -104,12 +103,12 @@ public class TurnBasedMultiplayer extends Multiplayer {
      * is only updated if it is the local user's turn.
      * @return true if a turn was taken.
      */
-    public boolean takeTurn(JSONObject state, String thumbHtml) {
+    public boolean takeTurn(int nextPlayer, JSONObject state, String thumbHtml) {
         if (!isMyTurn()) {
             return false;
         }
         try {
-            mGlobalMemberCursor = (mGlobalMemberCursor + 1) % mMembers.length; 
+            mGlobalMemberCursor = nextPlayer; 
             state.put(OBJ_MEMBER_CURSOR, mGlobalMemberCursor);
             mLatestState = state;
         } catch (JSONException e) {

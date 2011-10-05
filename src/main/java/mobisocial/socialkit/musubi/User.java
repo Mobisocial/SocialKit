@@ -46,7 +46,6 @@ public class User {
         String sortOrder = null;
         Cursor c = context.getContentResolver().query(
                 uri, projection, selection, selectionArgs, sortOrder);
-        Log.d("SOCIALKIT", "cursor = " + c);
         if (!c.moveToFirst()) {
             return null;
         }

@@ -63,7 +63,6 @@ public class RoundRobinMultiplayer extends Multiplayer {
         mMembers = new String[memberArr.length()];
         int localMemberIndex = -1;
         String localMember = User.getLocalUser(context, mFeedUri).getId();
-        Log.d(TAG, "GOT THE LOCAL USER " + localMember);
         for (int i = 0; i < memberArr.length(); i++) {
             mMembers[i] = memberArr.optString(i);
             if (mMembers[i].equals(localMember)) {
