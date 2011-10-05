@@ -116,8 +116,4 @@ public class Musubi {
             }
         }
     }
-
-    public Object getMultiplayer(Context context, Intent details) {
-        return new TurnBasedMultiplayer(context, details);
-    }
 }

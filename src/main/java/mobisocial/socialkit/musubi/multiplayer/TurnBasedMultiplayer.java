@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import mobisocial.socialkit.musubi.Feed;
+import mobisocial.socialkit.musubi.FeedRenderable;
 import mobisocial.socialkit.musubi.Musubi;
 import mobisocial.socialkit.musubi.Musubi.StateObserver;
 import mobisocial.socialkit.musubi.User;
@@ -20,7 +21,6 @@ public class TurnBasedMultiplayer extends Multiplayer {
     public static final String OBJ_MEMBER_CURSOR = "member_cursor";
 
     private JSONObject mLatestState;
-    final Intent mLaunchIntent;
     final String[] mMembers;
     final Uri mFeedUri;
     final String mLocalMember;
@@ -30,7 +30,6 @@ public class TurnBasedMultiplayer extends Multiplayer {
     private int mGlobalMemberCursor;
 
     public TurnBasedMultiplayer(Context context, Intent intent) {
-        mLaunchIntent = intent;
         mFeedUri = intent.getParcelableExtra(Musubi.EXTRA_FEED_URI);
         mFeed = Musubi.getInstance(context, intent).getFeed(mFeedUri);
         mFeed.registerStateObserver(mInternalStateObserver);
@@ -102,7 +101,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
      * local user's turn.
      * @return true if a turn was taken.
      */
-    public boolean takeTurn(int nextPlayer, JSONObject state, String thumbHtml) {
+    public boolean takeTurn(int nextPlayer, JSONObject state, FeedRenderable thumbnail) {
         if (!isMyTurn()) {
             return false;
         }
@@ -113,7 +112,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
         } catch (JSONException e) {
             Log.e(TAG, "Failed to update cursor.", e);
         }
-        mFeed.postObjectWithHtml(state, thumbHtml);
+        mFeed.postStateWithRenderable(state, thumbnail);
         if (DBG) Log.d(TAG, "Sent cursor " + state.optInt(OBJ_MEMBER_CURSOR));
         return true;
     }
@@ -124,9 +123,9 @@ public class TurnBasedMultiplayer extends Multiplayer {
      * is only updated if it is the local user's turn.
      * @return true if a turn was taken.
      */
-    public boolean takeTurn(JSONObject state, String thumbHtml) {
+    public boolean takeTurn(JSONObject state, FeedRenderable thumbnail) {
         int next = (mGlobalMemberCursor + 1) % mMembers.length;
-        return takeTurn(next, state, thumbHtml);
+        return takeTurn(next, state, thumbnail);
     }
 
     /**

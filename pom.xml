@@ -88,7 +88,7 @@
           <additionalparam>
              -quiet
              -federate Android http://developer.android.com/reference
-             -federationxml Android http://doclava.googlecode.com/svn/static/api/android-10.xml
+             -federationxml Android http://doclava.googlecode.com/svn/static/api/android-9.xml
              -hdf project.name "${project.name}"
              -d ${project.build.directory}/apidocs
              -generatesources

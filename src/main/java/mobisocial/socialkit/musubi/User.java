@@ -10,11 +10,9 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 
 import mobisocial.socialkit.util.FastBase64;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.util.Log;
 
 public class User {
     public static final String COL_NAME = "name";

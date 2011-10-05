@@ -110,7 +110,7 @@ public class Feed {
         }
     }
 
-    public void postObject(JSONObject appState) {
+    public void postObject(JSONObject obj) {
         JSONObject b = new JSONObject();
         try {
             b.put("state", b);
@@ -118,32 +118,11 @@ public class Feed {
         postInternal(b);
     }
 
-    public void postObjectWithHtml(JSONObject appState, String thumbnailHtml) {
+    public void postStateWithRenderable(JSONObject state, FeedRenderable thumbnail) {
         JSONObject b = new JSONObject();
         try {
-            b.put("html", thumbnailHtml);
-            b.put("state", appState);
-        } catch (JSONException e) {
-        }
-        postInternal(b);
-    }
-
-    public void postObjectWithImage(JSONObject appState, String b64Thumbnail) {
-        JSONObject b = new JSONObject();
-        try {
-            
-            b.put("b64jpgthumb", b64Thumbnail);
-            b.put("state", appState);
-        } catch (JSONException e) {
-        }
-        postInternal(b);
-    }
-
-    public void postObjectWithText(JSONObject appState, String thumbnailTxt) {
-        JSONObject b = new JSONObject();
-        try {
-            b.put("txt", thumbnailTxt);
-            b.put("state", appState);
+            thumbnail.toJson(b);
+            b.put("state", state);
         } catch (JSONException e) {
         }
         postInternal(b);
