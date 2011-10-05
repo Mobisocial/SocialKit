@@ -18,7 +18,7 @@ import android.util.Log;
  * round robin multiplayer application.
  *
  */
-public class RoundRobinMultiplayer extends Multiplayer {
+public class TurnBasedMultiplayer extends Multiplayer {
     public static final String OBJ_MEMBER_CURSOR = "member_cursor";
 
     private JSONObject mLatestState;
@@ -30,7 +30,7 @@ public class RoundRobinMultiplayer extends Multiplayer {
     private StateObserver mAppStateObserver;
     private final Feed mFeed;
 
-    public RoundRobinMultiplayer(Context context, Intent intent) {
+    public TurnBasedMultiplayer(Context context, Intent intent) {
         mLaunchIntent = intent;
         mFeedUri = intent.getParcelableExtra(Musubi.EXTRA_FEED_URI);
         mFeed = Musubi.getInstance(context, intent).getFeed(mFeedUri);
