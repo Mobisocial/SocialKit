@@ -1,11 +1,13 @@
 package mobisocial.socialkit.musubi.multiplayer;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import mobisocial.socialkit.musubi.Feed;
 import mobisocial.socialkit.musubi.Musubi;
 import mobisocial.socialkit.musubi.Musubi.StateObserver;
+import mobisocial.socialkit.musubi.User;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -13,14 +15,10 @@ import android.util.Log;
 
 /**
  * Manages the state machine associated with a turn-based,
- * multiplayer application.
+ * round robin multiplayer application.
  *
  */
-public class TurnBasedMultiplayer extends Multiplayer {
-    public static final String EXTRA_MEMBERS = "members";
-    public static final String EXTRA_LOCAL_MEMBER_INDEX = "local_member_index";
-    public static final String EXTRA_GLOBAL_MEMBER_CURSOR = "global_member_cursor";
-
+public class RoundRobinMultiplayer extends Multiplayer {
     public static final String OBJ_MEMBER_CURSOR = "member_cursor";
 
     private JSONObject mLatestState;
@@ -32,15 +30,48 @@ public class TurnBasedMultiplayer extends Multiplayer {
     private StateObserver mAppStateObserver;
     private final Feed mFeed;
 
-    public TurnBasedMultiplayer(Context context, Intent intent) {
+    public RoundRobinMultiplayer(Context context, Intent intent) {
         mLaunchIntent = intent;
-        // TODO: intent.getStringArrayExtra("membership") ~ fixed, open, etc.
-        mMembers = intent.getStringArrayExtra(EXTRA_MEMBERS);
         mFeedUri = intent.getParcelableExtra(Musubi.EXTRA_FEED_URI);
-        mLocalMemberIndex = intent.getIntExtra(EXTRA_LOCAL_MEMBER_INDEX, -1);
-        mGlobalMemberCursor = intent.getIntExtra(EXTRA_GLOBAL_MEMBER_CURSOR, -1);
         mFeed = Musubi.getInstance(context, intent).getFeed(mFeedUri);
         mFeed.registerStateObserver(mInternalStateObserver);
+        JSONObject state = getLatestState();
+
+        if (state == null) {
+            // TODO: Temporary.
+            if (intent.hasExtra("obj")) {
+                try {
+                    state = new JSONObject(intent.getStringExtra("obj"));
+                } catch (JSONException e) {
+                }
+            }
+        }
+        
+        if (state == null) {
+            Log.e(TAG, "App state is null.");
+            mLocalMemberIndex = -1;
+            mMembers = null;
+            return;
+        }
+        if (!state.has(OBJ_MEMBERSHIP)) {
+            Log.e(TAG, "App state has no members.");
+            mLocalMemberIndex = -1;
+            mMembers = null;
+            return;
+        }
+        JSONArray memberArr = state.optJSONArray(OBJ_MEMBERSHIP);          
+        mMembers = new String[memberArr.length()];
+        int localMemberIndex = -1;
+        String localMember = User.getLocalUser(context, mFeedUri).getId();
+        Log.d(TAG, "GOT THE LOCAL USER " + localMember);
+        for (int i = 0; i < memberArr.length(); i++) {
+            mMembers[i] = memberArr.optString(i);
+            if (mMembers[i].equals(localMember)) {
+                localMemberIndex = i;
+            }
+        }
+        mLocalMemberIndex = localMemberIndex;
+        mGlobalMemberCursor = (state.has(OBJ_MEMBER_CURSOR)) ? state.optInt(OBJ_MEMBER_CURSOR) : 0;
     }
 
     /**
