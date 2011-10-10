@@ -13,6 +13,7 @@ import mobisocial.socialkit.util.FastBase64;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 public class User {
     public static final String COL_NAME = "name";
@@ -22,7 +23,7 @@ public class User {
     private final String mId;
     private final String mName;
 
-    public User(String name, String personId) {
+    User(String name, String personId) {
         mName = name;
         mId = personId;
     }
@@ -35,6 +36,29 @@ public class User {
         return mName;
     }
 
+    public static User getUser(Context context, Uri feedUri, String personId) {
+        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/member_details/" +
+                feedUri.getLastPathSegment() + "/" + personId);
+        String[] projection = null;
+        String selection = null;
+        String[] selectionArgs = null;
+        String sortOrder = null;
+        Cursor c = context.getContentResolver().query(
+                uri, projection, selection, selectionArgs, sortOrder);
+        try {
+            if (!c.moveToFirst()) {
+                Log.w(Musubi.TAG, "No user found for " + personId);
+                return null;
+            }
+            String name = c.getString(c.getColumnIndexOrThrow(COL_NAME));
+            return new User(name, personId);
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+    }
+
     public static User getLocalUser(Context context, Uri feedUri) {
         Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/" +
                 feedUri.getLastPathSegment());
@@ -44,14 +68,20 @@ public class User {
         String sortOrder = null;
         Cursor c = context.getContentResolver().query(
                 uri, projection, selection, selectionArgs, sortOrder);
-        if (!c.moveToFirst()) {
-            return null;
+        try {
+            if (!c.moveToFirst()) {
+                return null;
+            }
+            String name = c.getString(c.getColumnIndexOrThrow(COL_NAME));
+            String keyStr  = c.getString(c.getColumnIndexOrThrow(COL_PUBLIC_KEY));
+            PublicKey key = publicKeyFromString(keyStr);
+            String personId = makePersonIdForPublicKey(key);
+            return new User(name, personId);
+        } finally {
+            if (c != null) {
+                c.close();
+            }
         }
-        String name = c.getString(c.getColumnIndexOrThrow(COL_NAME));
-        String keyStr  = c.getString(c.getColumnIndexOrThrow(COL_PUBLIC_KEY));
-        PublicKey key = publicKeyFromString(keyStr);
-        String personId = makePersonIdForPublicKey(key);
-        return new User(name, personId);
     }
 
     public static RSAPublicKey publicKeyFromString(String str){

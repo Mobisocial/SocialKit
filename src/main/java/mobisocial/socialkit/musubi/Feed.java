@@ -1,6 +1,7 @@
 
 package mobisocial.socialkit.musubi;
 
+import java.security.PublicKey;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -75,13 +76,13 @@ public class Feed {
         return mJunction;
     }
 
-    public JSONObject getLatestState() {
+    public JSONObject getLatestObj() {
         Cursor cursor = query();
         if (cursor.moveToFirst()) {
             String entry = cursor.getString(cursor.getColumnIndexOrThrow("json"));
             try {
                 JSONObject wrapper = new JSONObject(entry);
-                return wrapper.optJSONObject("state");
+                return wrapper;
             } catch (JSONException e) {
                 Log.wtf(TAG, "Error parsing json from db");
             }
@@ -121,14 +122,14 @@ public class Feed {
         postInternal(obj.type, obj.json);
     }
 
-    public void postStateWithRenderable(JSONObject state, FeedRenderable thumbnail) {
-        JSONObject b = new JSONObject();
+    public void postAppStateRenderable(JSONObject state, FeedRenderable thumbnail) {
         try {
+            JSONObject b = new JSONObject(state.toString());
             thumbnail.toJson(b);
-            b.put("state", state);
+            postInternal(TYPE_APP_STATE, b);
         } catch (JSONException e) {
+            Log.e(TAG, "Error posting obj", e);
         }
-        postInternal(TYPE_APP_STATE, b);
     }
 
     public void postAppState(AppState state) {
@@ -158,29 +159,7 @@ public class Feed {
     }
 
     public User getLocalUser() {
-        Uri feedMembersUri = Uri.parse("content://" + Musubi.AUTHORITY +
-                "/local_user/" + mFeedName);
-        Cursor cursor;
-        try {
-            String selection = null;
-            String[] selectionArgs = null;
-            String order = null;
-            cursor = mMusubi.getContext().getContentResolver().query(feedMembersUri, null,
-                    selection, selectionArgs, order);
-        } catch (Exception e) {
-            Log.e(TAG, "Error getting local user", e);
-            return null;
-        }
-
-        if (!cursor.moveToFirst()) {
-            return null;
-        }
-
-        int nameIndex = cursor.getColumnIndex("name");
-        int pubKeyIndex = cursor.getColumnIndex("public_key");
-        String name = cursor.getString(nameIndex);
-        String pubKey = cursor.getString(pubKeyIndex);
-        return new User(name, pubKey);
+        return User.getLocalUser(mMusubi.getContext(), mUri);
     }
 
     /**
@@ -210,7 +189,8 @@ public class Feed {
         while (!cursor.isAfterLast()) {
             String name = cursor.getString(nameIndex);
             String pubKey = cursor.getString(pubKeyIndex);
-            users.add(new User(name, pubKey));
+            PublicKey k = User.publicKeyFromString(pubKey);
+            users.add(new User(name, User.makePersonIdForPublicKey(k)));
             cursor.moveToNext();
         }
         return users;

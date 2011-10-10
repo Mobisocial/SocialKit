@@ -28,37 +28,39 @@ public class TurnBasedMultiplayer extends Multiplayer {
     private StateObserver mAppStateObserver;
     private final Feed mFeed;
     private int mGlobalMemberCursor;
+    private final Context mContext;
 
     public TurnBasedMultiplayer(Context context, Intent intent) {
         mFeedUri = intent.getParcelableExtra(Musubi.EXTRA_FEED_URI);
         mFeed = Musubi.getInstance(context, intent).getFeed(mFeedUri);
         mFeed.registerStateObserver(mInternalStateObserver);
-        JSONObject state = getLatestState();
+        JSONObject obj = mFeed.getLatestObj();
         mLocalMember = User.getLocalUser(context, mFeedUri).getId();
+        mContext = context;
 
-        if (state == null) {
+        if (obj == null) {
             // TODO: Temporary.
             if (intent.hasExtra("obj")) {
                 try {
-                    state = new JSONObject(intent.getStringExtra("obj"));
+                    obj = new JSONObject(intent.getStringExtra("obj"));
                 } catch (JSONException e) {
                 }
             }
         }
         
-        if (state == null) {
+        if (obj == null) {
             Log.e(TAG, "App state is null.");
             mMembers = null;
             mLocalMemberIndex = -1;
             return;
         }
-        if (!state.has(OBJ_MEMBERSHIP)) {
+        if (!obj.has(OBJ_MEMBERSHIP)) {
             Log.e(TAG, "App state has no members.");
             mMembers = null;
             mLocalMemberIndex = -1;
             return;
         }
-        JSONArray memberArr = state.optJSONArray(OBJ_MEMBERSHIP);          
+        JSONArray memberArr = obj.optJSONArray(OBJ_MEMBERSHIP);          
         mMembers = new String[memberArr.length()];
         int localMemberIndex = -1;
         for (int i = 0; i < memberArr.length(); i++) {
@@ -68,7 +70,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
             }
         }
         mLocalMemberIndex = localMemberIndex;
-        mGlobalMemberCursor = (state.has(OBJ_MEMBER_CURSOR)) ? state.optInt(OBJ_MEMBER_CURSOR) : 0;
+        mGlobalMemberCursor = (obj.has(OBJ_MEMBER_CURSOR)) ? obj.optInt(OBJ_MEMBER_CURSOR) : 0;
     }
 
     /**
@@ -105,16 +107,18 @@ public class TurnBasedMultiplayer extends Multiplayer {
         if (!isMyTurn()) {
             return false;
         }
+        JSONObject out = new JSONObject();
         try {
             mGlobalMemberCursor = nextPlayer; 
-            state.put(OBJ_MEMBER_CURSOR, mGlobalMemberCursor);
-            state.put(OBJ_MEMBERSHIP, membersJsonArray());
+            out.put(OBJ_MEMBER_CURSOR, mGlobalMemberCursor);
+            out.put(OBJ_MEMBERSHIP, membersJsonArray());
+            out.put("state", state);
             mLatestState = state;
         } catch (JSONException e) {
             Log.e(TAG, "Failed to update cursor.", e);
         }
-        mFeed.postStateWithRenderable(state, thumbnail);
-        if (DBG) Log.d(TAG, "Sent cursor " + state.optInt(OBJ_MEMBER_CURSOR));
+        mFeed.postAppStateRenderable(out, thumbnail);
+        if (DBG) Log.d(TAG, "Sent cursor " + out.optInt(OBJ_MEMBER_CURSOR));
         return true;
     }
 
@@ -142,8 +146,12 @@ public class TurnBasedMultiplayer extends Multiplayer {
      */
     public JSONObject getLatestState() {
         if (mLatestState == null) {
-            mLatestState = mFeed.getLatestState();
+            JSONObject obj = mFeed.getLatestObj();
+            if (obj != null && obj.has("state")) {
+                mLatestState = obj.optJSONObject("state");
+            }
         }
+        Log.d(TAG, "returning latest state " + mLatestState);
         return mLatestState;
     }
 
@@ -157,16 +165,18 @@ public class TurnBasedMultiplayer extends Multiplayer {
     private final StateObserver mInternalStateObserver = new StateObserver() {
         @Override
         public void onUpdate(JSONObject newState) {
+            if (newState == null || !newState.has("state")) return;
             try {
+                Log.d(TAG, "CHECKING OVER " + newState);
                 mLatestState = newState.optJSONObject("state");
                 mGlobalMemberCursor = newState.getInt(OBJ_MEMBER_CURSOR);
                 if (DBG) Log.d(TAG, "Updated cursor to " + mGlobalMemberCursor);
             } catch (JSONException e) {
-                Log.e(TAG, "Failed to get member_cursor.", e);
+                Log.e(TAG, "Failed to get member_cursor from " + newState);
             }
 
             if (mAppStateObserver != null) {
-                mAppStateObserver.onUpdate(newState);
+                mAppStateObserver.onUpdate(mLatestState);
             }
         }
     };
@@ -176,5 +186,12 @@ public class TurnBasedMultiplayer extends Multiplayer {
      */
     public String[] getMembers() {
         return mMembers;
+    }
+
+    public User getUser(int memberIndex) {
+        if (memberIndex == mLocalMemberIndex) {
+            return User.getLocalUser(mContext, mFeedUri);
+        }
+        return User.getUser(mContext, mFeedUri, mMembers[memberIndex]);
     }
 }
