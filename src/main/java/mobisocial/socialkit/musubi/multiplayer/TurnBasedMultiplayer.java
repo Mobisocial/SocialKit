@@ -158,7 +158,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
         @Override
         public void onUpdate(JSONObject newState) {
             try {
-                mLatestState = newState;
+                mLatestState = newState.optJSONObject("state");
                 mGlobalMemberCursor = newState.getInt(OBJ_MEMBER_CURSOR);
                 if (DBG) Log.d(TAG, "Updated cursor to " + mGlobalMemberCursor);
             } catch (JSONException e) {

@@ -110,6 +110,7 @@ public class Feed {
             mObservers.add(observer);
         }
         if (!mObservingProvider) {
+            if (DBG) Log.d(TAG, "Enabling feed observer...");
             mObservingProvider = true;
             mMusubi.getContext().getContentResolver().registerContentObserver(mUri, false,
                     mContentObserver);
@@ -216,7 +217,7 @@ public class Feed {
     }
 
     private void doContentChanged() {
-        JSONObject state = null;
+        JSONObject obj = null;
         try {
             String selection = null;
             String[] selectionArgs = null;
@@ -225,21 +226,16 @@ public class Feed {
                     selectionArgs, order);
             if (c.moveToFirst()) {
                 String entry = c.getString(c.getColumnIndexOrThrow("json"));
-                JSONObject obj = new JSONObject(entry);
-                state = obj.optJSONObject("state");
+                obj = new JSONObject(entry);
             }
         } catch (Exception e) {
             Log.e(TAG, "Error querying for app state", e);
             return;
         }
-        if (state == null) {
-            Log.e(TAG, "no app state");
-            return;
-        }
 
         synchronized (Feed.this) {
             for (StateObserver observer : mObservers) {
-                observer.onUpdate(state);
+                observer.onUpdate(obj);
             }
         }
     }
