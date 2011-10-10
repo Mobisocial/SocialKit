@@ -108,6 +108,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
         try {
             mGlobalMemberCursor = nextPlayer; 
             state.put(OBJ_MEMBER_CURSOR, mGlobalMemberCursor);
+            state.put(OBJ_MEMBERSHIP, membersJsonArray());
             mLatestState = state;
         } catch (JSONException e) {
             Log.e(TAG, "Failed to update cursor.", e);
@@ -126,6 +127,14 @@ public class TurnBasedMultiplayer extends Multiplayer {
     public boolean takeTurn(JSONObject state, FeedRenderable thumbnail) {
         int next = (mGlobalMemberCursor + 1) % mMembers.length;
         return takeTurn(next, state, thumbnail);
+    }
+
+    private JSONArray membersJsonArray() {
+        JSONArray r = new JSONArray();
+        for (String m : mMembers) {
+            r.put(m);
+        }
+        return r;
     }
 
     /**
