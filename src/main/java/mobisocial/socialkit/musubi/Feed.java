@@ -27,7 +27,9 @@ import edu.stanford.junction.api.messaging.MessageHeader;
  */
 public class Feed {
     static final String TAG = Musubi.TAG;
-    private static final String TYPE_APP_STATE = "appstate";
+    private static final boolean DBG = true;
+
+    private static final String TYPE_APP_STATE = Obj.TYPE_APP_STATE;
     private final Musubi mMusubi;
     private final Uri mUri;
     private final String mFeedName;
@@ -49,6 +51,10 @@ public class Feed {
                 doContentChanged();
             }
         };
+    }
+
+    public final Uri getUri() {
+        return mUri;
     }
 
     public Junction getJunction() {
@@ -110,12 +116,8 @@ public class Feed {
         }
     }
 
-    public void postObject(JSONObject obj) {
-        JSONObject b = new JSONObject();
-        try {
-            b.put("state", b);
-        } catch (JSONException e) {}
-        postInternal(b);
+    public void postObj(Obj obj) {
+        postInternal(obj.type, obj.json);
     }
 
     public void postStateWithRenderable(JSONObject state, FeedRenderable thumbnail) {
@@ -125,7 +127,7 @@ public class Feed {
             b.put("state", state);
         } catch (JSONException e) {
         }
-        postInternal(b);
+        postInternal(TYPE_APP_STATE, b);
     }
 
     public void postAppState(AppState state) {
@@ -144,12 +146,12 @@ public class Feed {
                 b.put("arg", state.arg);
             }
         } catch (JSONException e) {}
-        postInternal(b);
+        postInternal(TYPE_APP_STATE, b);
     }
 
-    private void postInternal(JSONObject obj) {
+    private void postInternal(String type, JSONObject obj) {
         ContentValues values = new ContentValues();
-        values.put("type", TYPE_APP_STATE);
+        values.put("type", type);
         values.put("json", obj.toString());
         mMusubi.getContentProviderThread().insert(mUri, values);
     }

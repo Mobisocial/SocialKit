@@ -1,10 +1,10 @@
 
 package mobisocial.socialkit.musubi;
 
-import mobisocial.socialkit.musubi.multiplayer.TurnBasedMultiplayer;
-
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +26,7 @@ public class Musubi {
     private final Intent mIntent;
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
+    private final MusubiContext mMusubiContext;
 
     public static boolean isMusubiInstalled(Context context) {
         final Intent intent = new Intent(Intent.ACTION_MAIN, null);
@@ -63,12 +64,17 @@ public class Musubi {
     private Musubi(Context context, Intent intent) {
         mContext = context;
         mIntent = intent;
+        mMusubiContext = MusubiContext.forAndroidContext(context);
         mContentProviderThread = new ContentProviderThread();
         mContentProviderThread.start();
     }
 
     public static Musubi getInstance(Context context, Intent intent) {
         return new Musubi(context, intent);
+    }
+
+    public static Musubi getInstance(Activity activity) {
+        return new Musubi(activity, activity.getIntent());
     }
 
     ContentProviderThread getContentProviderThread() {
@@ -115,5 +121,17 @@ public class Musubi {
                 this.cv = cv;
             }
         }
+    }
+
+    public MusubiContext getEnvironment() {
+        return mMusubiContext;
+    }
+
+    public static Obj objForUri(Uri uri) {
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("uri", uri);
+        } catch (JSONException e) {}
+        return new Obj(Obj.TYPE_URI, obj);
     }
 }
