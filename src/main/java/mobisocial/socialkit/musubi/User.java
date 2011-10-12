@@ -103,7 +103,7 @@ public class User {
         try {
             me = SHA1(key.getEncoded());
         } catch (Exception e) {
-            throw new IllegalArgumentException("Could not compute SHA1 of public key.");
+            throw new IllegalArgumentException("Could not compute SHA1 of public key.", e);
         }
         return me.substring(0, 10);
     }

@@ -30,7 +30,6 @@ public class Feed {
     static final String TAG = Musubi.TAG;
     private static final boolean DBG = true;
 
-    private static final String TYPE_APP_STATE = Obj.TYPE_APP_STATE;
     private final Musubi mMusubi;
     private final Uri mUri;
     private final String mFeedName;
@@ -130,7 +129,7 @@ public class Feed {
         try {
             JSONObject b = new JSONObject(state.toString());
             thumbnail.toJson(b);
-            postInternal(TYPE_APP_STATE, b);
+            postInternal(Obj.TYPE_APP_STATE, b);
         } catch (JSONException e) {
             Log.e(TAG, "Error posting obj", e);
         }
@@ -152,7 +151,7 @@ public class Feed {
                 b.put("arg", state.arg);
             }
         } catch (JSONException e) {}
-        postInternal(TYPE_APP_STATE, b);
+        postInternal(Obj.TYPE_APP_STATE, b);
     }
 
     private void postInternal(String type, JSONObject obj) {
