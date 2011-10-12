@@ -118,6 +118,10 @@ public class Feed {
         }
     }
 
+    public boolean removeStateObserver(StateObserver observer) {
+        return mObservers.remove(observer);
+    }
+
     public void postObj(Obj obj) {
         postInternal(obj.type, obj.json);
     }
