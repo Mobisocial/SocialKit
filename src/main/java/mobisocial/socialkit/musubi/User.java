@@ -84,7 +84,7 @@ public class User {
         }
     }
 
-    public static RSAPublicKey publicKeyFromString(String str){
+    static RSAPublicKey publicKeyFromString(String str){
         try{
             byte[] pubKeyBytes = FastBase64.decode(str);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -98,7 +98,7 @@ public class User {
 
     // TODO: This is synchronized with bumblebee's Util.makePersonId.
     // bumblebee should depend on SocialKit and call this method.
-    public static String makePersonIdForPublicKey(PublicKey key) {
+    static String makePersonIdForPublicKey(PublicKey key) {
         String me = null;
         try {
             me = SHA1(key.getEncoded());

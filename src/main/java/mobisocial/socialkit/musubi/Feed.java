@@ -92,6 +92,15 @@ public class Feed {
     /**
      * Issues a query over this feed's objects.
      */
+    public Cursor query(String[] projection, String selection, String[] selectionArgs,
+            String order) {
+        return mMusubi.getContext().getContentResolver().query(mUri, projection, selection,
+                selectionArgs, order);
+    }
+
+    /**
+     * Issues a query over this feed's objects.
+     */
     public Cursor query(String selection, String[] selectionArgs) {
         String order = "_id desc LIMIT 1"; // TODO: fix.
         return mMusubi.getContext().getContentResolver().query(mUri, null, selection,
@@ -133,25 +142,6 @@ public class Feed {
         } catch (JSONException e) {
             Log.e(TAG, "Error posting obj", e);
         }
-    }
-
-    public void postAppState(AppState state) {
-        JSONObject b = new JSONObject();
-        try {
-            if (state.state != null) {
-                b.put("state", state.state);
-            }
-            if (state.thumbnailText != null) {
-                b.put("txt", state.thumbnailText);
-            }
-            if (state.thumbnailImage != null) {
-                b.put("b64jpgthumb", state.thumbnailImage);
-            }
-            if (state.arg != null) {
-                b.put("arg", state.arg);
-            }
-        } catch (JSONException e) {}
-        postInternal(Obj.TYPE_APP_STATE, b);
     }
 
     private void postInternal(String type, JSONObject obj) {
