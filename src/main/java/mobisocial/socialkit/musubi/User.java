@@ -12,20 +12,29 @@ import java.security.spec.X509EncodedKeySpec;
 import mobisocial.socialkit.util.FastBase64;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Log;
 
 public class User {
-    public static final String COL_NAME = "name";
-    public static final String COL_PUBLIC_KEY = "public_key";
-    public static final String COL_PERSON_ID = "person_id";
+    static final String COL_NAME = "name";
+    static final String COL_PUBLIC_KEY = "public_key";
+    static final String COL_PERSON_ID = "person_id";
+    static final String COL_PICTURE = "picture";
 
     private final String mId;
     private final String mName;
+    private final Uri mFeedUri;
+    private final boolean mIsLocalUser;
+    private final Context mContext;
 
-    User(String name, String personId) {
+    User(Context context, boolean isLocalUser, String name, String personId, Uri feedUri) {
+        mIsLocalUser = isLocalUser;
         mName = name;
         mId = personId;
+        mFeedUri = feedUri;
+        mContext = context;
     }
 
     public String getId() {
@@ -36,12 +45,41 @@ public class User {
         return mName;
     }
 
-    public static User getUser(Context context, Uri feedUri, String personId) {
-        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/member_details/" +
-                feedUri.getLastPathSegment() + "/" + personId);
-        String[] projection = null;
+    public Bitmap getPicture() {
+        Uri uri;
+        if (!mIsLocalUser) {
+            uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
+                    mFeedUri.getLastPathSegment());
+        } else {
+            uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/" +
+                    mFeedUri.getLastPathSegment());
+        }
+        String[] projection = { COL_PICTURE };
         String selection = null;
         String[] selectionArgs = null;
+        String sortOrder = null;
+        Cursor c = mContext.getContentResolver().query(
+                uri, projection, selection, selectionArgs, sortOrder);
+        try {
+            if (!c.moveToFirst()) {
+                Log.w(Musubi.TAG, "No picture found for " + mId);
+                return null;
+            }
+            byte[] pic = c.getBlob(c.getColumnIndexOrThrow(COL_PICTURE));
+            return BitmapFactory.decodeByteArray(pic, 0, pic.length);
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+    }
+
+    public static User getUser(Context context, Uri feedUri, String personId) {
+        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
+                feedUri.getLastPathSegment());
+        String[] projection = { COL_NAME };
+        String selection = User.COL_PERSON_ID + " = ?";
+        String[] selectionArgs = new String[] { personId };
         String sortOrder = null;
         Cursor c = context.getContentResolver().query(
                 uri, projection, selection, selectionArgs, sortOrder);
@@ -51,7 +89,7 @@ public class User {
                 return null;
             }
             String name = c.getString(c.getColumnIndexOrThrow(COL_NAME));
-            return new User(name, personId);
+            return new User(context, false, name, personId, feedUri);
         } finally {
             if (c != null) {
                 c.close();
@@ -62,7 +100,7 @@ public class User {
     public static User getLocalUser(Context context, Uri feedUri) {
         Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/" +
                 feedUri.getLastPathSegment());
-        String[] projection = null;
+        String[] projection = { COL_NAME, COL_PUBLIC_KEY };
         String selection = null;
         String[] selectionArgs = null;
         String sortOrder = null;
@@ -76,7 +114,7 @@ public class User {
             String keyStr  = c.getString(c.getColumnIndexOrThrow(COL_PUBLIC_KEY));
             PublicKey key = publicKeyFromString(keyStr);
             String personId = makePersonIdForPublicKey(key);
-            return new User(name, personId);
+            return new User(context, true, name, personId, feedUri);
         } finally {
             if (c != null) {
                 c.close();

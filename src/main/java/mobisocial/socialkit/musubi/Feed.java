@@ -160,7 +160,7 @@ public class Feed {
      */
     public Set<User> getRemoteUsers() {
         Uri feedMembersUri = Uri.parse("content://" + Musubi.AUTHORITY +
-                "/feed_members/" + mFeedName);
+                "/members/" + mFeedName);
         Cursor cursor;
         try {
             String selection = null;
@@ -183,7 +183,8 @@ public class Feed {
             String name = cursor.getString(nameIndex);
             String pubKey = cursor.getString(pubKeyIndex);
             PublicKey k = User.publicKeyFromString(pubKey);
-            users.add(new User(name, User.makePersonIdForPublicKey(k)));
+            users.add(new User(mMusubi.getContext(), false, name,
+                    User.makePersonIdForPublicKey(k), mUri));
             cursor.moveToNext();
         }
         return users;
