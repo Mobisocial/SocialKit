@@ -132,6 +132,6 @@ public class Musubi {
         try {
             obj.put("uri", uri);
         } catch (JSONException e) {}
-        return new Obj(Obj.TYPE_URI, obj);
+        return new Obj.Generic(Obj.TYPE_URI, obj);
     }
 }

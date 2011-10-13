@@ -131,7 +131,7 @@ public class Feed {
     }
 
     public void postObj(Obj obj) {
-        postInternal(obj.type, obj.json);
+        postInternal(obj.getType(), obj.getJson());
     }
 
     public void postAppStateRenderable(JSONObject state, FeedRenderable thumbnail) {

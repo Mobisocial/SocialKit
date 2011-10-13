@@ -11,6 +11,4 @@ public class MusubiContext {
     public MusubiContext(Context context) {
         mContext = context;
     }
-
-    
 }
