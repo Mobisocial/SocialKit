@@ -4,6 +4,8 @@ package mobisocial.socialkit.musubi;
 import org.json.JSONObject;
 
 public abstract class Obj {
+    public static final String FIELD_TYPE = "type";
+
     public static final String TYPE_URI = "uri";
     public static final String TYPE_APP_STATE = "appstate";
 

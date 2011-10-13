@@ -8,6 +8,7 @@ import mobisocial.socialkit.musubi.Feed;
 import mobisocial.socialkit.musubi.FeedRenderable;
 import mobisocial.socialkit.musubi.Musubi;
 import mobisocial.socialkit.musubi.Musubi.StateObserver;
+import mobisocial.socialkit.musubi.Obj;
 import mobisocial.socialkit.musubi.User;
 import android.content.Context;
 import android.content.Intent;
@@ -33,6 +34,9 @@ public class TurnBasedMultiplayer extends Multiplayer {
     public TurnBasedMultiplayer(Context context, Intent intent) {
         mFeedUri = intent.getParcelableExtra(Musubi.EXTRA_FEED_URI);
         mFeed = Musubi.getInstance(context, intent).getFeed(mFeedUri);
+        String selection = Obj.FIELD_TYPE + " = ?";
+        String[] selectionArgs = new String[] { Obj.TYPE_APP_STATE };
+        mFeed.setSelection(selection, selectionArgs);
         mFeed.registerStateObserver(mInternalStateObserver);
         JSONObject obj = mFeed.getLatestObj();
         mLocalMember = User.getLocalUser(context, mFeedUri).getId();

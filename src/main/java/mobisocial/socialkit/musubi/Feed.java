@@ -38,6 +38,9 @@ public class Feed {
     JunctionActor mActor;
     Junction mJunction;
 
+    private String mSelection = null;
+    private String[] mSelectionArgs = null;
+
     Feed(Musubi musubi, Uri feedUri) {
         mMusubi = musubi;
         mUri = feedUri;
@@ -89,6 +92,11 @@ public class Feed {
         return null;
     }
 
+    public void setSelection(String selection, String[] selectionArgs) {
+        mSelection = selection;
+        mSelectionArgs = selectionArgs;
+    }
+
     /**
      * Issues a query over this feed's objects.
      */
@@ -111,7 +119,7 @@ public class Feed {
      * Issues a query over this feed's objects.
      */
     public Cursor query() {
-        return query(null, null);
+        return query(mSelection, mSelectionArgs);
     }
 
     public void registerStateObserver(StateObserver observer) {
