@@ -80,13 +80,18 @@ public class Feed {
 
     public JSONObject getLatestObj() {
         Cursor cursor = query();
+        if (cursor == null) {
+            return null;
+        }
         if (cursor.moveToFirst()) {
             String entry = cursor.getString(cursor.getColumnIndexOrThrow("json"));
             try {
                 JSONObject wrapper = new JSONObject(entry);
                 return wrapper;
             } catch (JSONException e) {
-                Log.wtf(TAG, "Error parsing json from db");
+                Log.e(TAG, "Error parsing json from db", e);
+            } finally {
+                cursor.close();
             }
         }
         return null;
