@@ -4,11 +4,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import mobisocial.socialkit.musubi.Feed;
+import mobisocial.socialkit.Obj;
+import mobisocial.socialkit.musubi.DbFeed;
+import mobisocial.socialkit.musubi.MemObj;
 import mobisocial.socialkit.musubi.Musubi;
 import mobisocial.socialkit.musubi.Musubi.StateObserver;
-import mobisocial.socialkit.musubi.Obj;
-import mobisocial.socialkit.musubi.User;
+import mobisocial.socialkit.musubi.DbUser;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -23,24 +24,28 @@ public class TurnBasedMultiplayer extends Multiplayer {
 
     private JSONObject mLatestState;
     final String[] mMembers;
-    final Uri mFeedUri;
+    final Uri mBaseFeedUri;
+    final long mObjHash;
     final String mLocalMember;
     final int mLocalMemberIndex;
     private StateObserver mAppStateObserver;
-    private final Feed mFeed;
+    private final DbFeed mAppFeed;
     private int mGlobalMemberCursor;
-    private final Context mContext;
+    private final Musubi mMusubi;
 
-    public TurnBasedMultiplayer(Context context, Intent intent) {
-        mFeedUri = intent.getParcelableExtra(Musubi.EXTRA_FEED_URI);
-        mFeed = Musubi.getInstance(context, intent).getFeed(mFeedUri);
+    public TurnBasedMultiplayer(Musubi musubi, Intent intent) {
+        mMusubi = musubi;
+        mBaseFeedUri = intent.getParcelableExtra(Musubi.EXTRA_FEED_URI);
+        mObjHash = intent.getLongExtra(Musubi.EXTRA_OBJ_HASH, -1);
+
+        Uri appFeed = DbFeed.uriForName(mBaseFeedUri.getLastPathSegment() + ":" + mObjHash);
+        mAppFeed = mMusubi.getFeed(appFeed);
         String selection = Obj.FIELD_TYPE + " = ?";
         String[] selectionArgs = new String[] { TYPE_APP_STATE };
-        mFeed.setSelection(selection, selectionArgs);
-        mFeed.registerStateObserver(mInternalStateObserver);
-        JSONObject obj = mFeed.getLatestObj();
-        mLocalMember = User.getLocalUser(context, mFeedUri).getId();
-        mContext = context;
+        mAppFeed.setSelection(selection, selectionArgs);
+        mAppFeed.registerStateObserver(mInternalStateObserver);
+        JSONObject obj = mAppFeed.getLatestObj();
+        mLocalMember = mMusubi.userForLocalDevice(mBaseFeedUri).getId();
 
         if (obj == null) {
             // TODO: Temporary.
@@ -151,7 +156,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
      */
     public JSONObject getLatestState() {
         if (mLatestState == null) {
-            JSONObject obj = mFeed.getLatestObj();
+            JSONObject obj = mAppFeed.getLatestObj();
             if (obj != null && obj.has("state")) {
                 mLatestState = obj.optJSONObject("state");
             }
@@ -193,17 +198,18 @@ public class TurnBasedMultiplayer extends Multiplayer {
         return mMembers;
     }
 
-    public User getUser(int memberIndex) {
+    public DbUser getUser(int memberIndex) {
         if (memberIndex == mLocalMemberIndex) {
-            return User.getLocalUser(mContext, mFeedUri);
+            return mMusubi.userForLocalDevice(mBaseFeedUri);
         }
-        return User.getUser(mContext, mFeedUri, mMembers[memberIndex]);
+        return mMusubi.userForGlobalId(mBaseFeedUri, mMembers[memberIndex]);
     }
 
     private void postAppStateRenderable(JSONObject state, FeedRenderable thumbnail) {
         try {
             JSONObject b = new JSONObject(state.toString());
             thumbnail.toJson(b);
+            mAppFeed.postObj(new MemObj(TYPE_APP_STATE, b));
         } catch (JSONException e) {}
     }
 }

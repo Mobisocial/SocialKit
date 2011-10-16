@@ -1,10 +1,11 @@
 
 package mobisocial.socialkit.musubi;
 
-import java.security.PublicKey;
 import java.util.HashSet;
 import java.util.Set;
 
+import mobisocial.socialkit.Feed;
+import mobisocial.socialkit.Obj;
 import mobisocial.socialkit.musubi.Musubi.StateObserver;
 
 import org.json.JSONException;
@@ -26,7 +27,7 @@ import edu.stanford.junction.api.messaging.MessageHeader;
  * A Musubi feed of objects.
  * 
  */
-public class Feed {
+public class DbFeed implements Feed {
     static final String TAG = Musubi.TAG;
     private static final boolean DBG = true;
 
@@ -41,7 +42,7 @@ public class Feed {
     private String mSelection = null;
     private String[] mSelectionArgs = null;
 
-    Feed(Musubi musubi, Uri feedUri) {
+    DbFeed(Musubi musubi, Uri feedUri) {
         mMusubi = musubi;
         mUri = feedUri;
         mFeedName = mUri.getLastPathSegment();
@@ -128,11 +129,11 @@ public class Feed {
     }
 
     public void registerStateObserver(StateObserver observer) {
-        synchronized (Feed.this) {
+        synchronized (DbFeed.this) {
             mObservers.add(observer);
         }
         if (!mObservingProvider) {
-            if (DBG) Log.d(TAG, "Enabling feed observer...");
+            if (DBG) Log.d(TAG, "Enabling feed observer on " + mUri);
             mObservingProvider = true;
             mMusubi.getContext().getContentResolver().registerContentObserver(mUri, false,
                     mContentObserver);
@@ -150,14 +151,14 @@ public class Feed {
         mMusubi.getContentProviderThread().insert(mUri, values);
     }
 
-    public User getLocalUser() {
-        return User.getLocalUser(mMusubi.getContext(), mUri);
+    public DbUser getLocalUser() {
+        return mMusubi.userForLocalDevice(mUri);
     }
 
     /**
      * List of remote participants available to this feed.
      */
-    public Set<User> getRemoteUsers() {
+    public Set<DbUser> getRemoteUsers() {
         Uri feedMembersUri = Uri.parse("content://" + Musubi.AUTHORITY +
                 "/members/" + mFeedName);
         Cursor cursor;
@@ -171,25 +172,27 @@ public class Feed {
             Log.e(TAG, "Error getting membership", e);
             return null;
         }
-        HashSet<User> users = new HashSet<User>();
+        HashSet<DbUser> users = new HashSet<DbUser>();
         if (!cursor.moveToFirst()) {
             return users; // TODO: doesn't include local user.
         }
 
-        int nameIndex = cursor.getColumnIndex("name");
-        int pubKeyIndex = cursor.getColumnIndex("public_key");
+        int nameIndex = cursor.getColumnIndex(DbUser.COL_NAME);
+        int globalIdIndex = cursor.getColumnIndex(DbUser.COL_PERSON_ID);
+        int localIdIndex = cursor.getColumnIndex(DbUser.COL_ID);
         while (!cursor.isAfterLast()) {
             String name = cursor.getString(nameIndex);
-            String pubKey = cursor.getString(pubKeyIndex);
-            PublicKey k = User.publicKeyFromString(pubKey);
-            users.add(new User(mMusubi.getContext(), false, name,
-                    User.makePersonIdForPublicKey(k), mUri));
+            String globalId = cursor.getString(globalIdIndex);
+            long localId = cursor.getLong(localIdIndex);
+            users.add(new DbUser(mMusubi.getContext(), false, name,
+                    localId, globalId, mUri));
             cursor.moveToNext();
         }
         return users;
     }
 
     private void doContentChanged() {
+        if (DBG) Log.d(TAG, "noticed change to feed " + mUri);
         JSONObject obj = null;
         try {
             String selection = null;
@@ -206,7 +209,7 @@ public class Feed {
             return;
         }
 
-        synchronized (Feed.this) {
+        synchronized (DbFeed.this) {
             for (StateObserver observer : mObservers) {
                 observer.onUpdate(obj);
             }
@@ -220,5 +223,9 @@ public class Feed {
         public void onMessageReceived(MessageHeader h, JSONObject json) {
             // TODO: trigger user-defined handlers
         }
+    }
+
+    public static Uri uriForName(String feedName) {
+        return Uri.parse("content://" + Musubi.AUTHORITY + "/feeds/" + feedName);
     }
 }

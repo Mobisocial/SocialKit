@@ -9,6 +9,7 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 
+import mobisocial.socialkit.User;
 import mobisocial.socialkit.util.FastBase64;
 import android.content.Context;
 import android.database.Cursor;
@@ -17,28 +18,44 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Log;
 
-public class User {
+/**
+ * A User object with details backed by a database cursor.
+ *
+ */
+public class DbUser implements User {
+    static final String COL_ID = "_id";
     static final String COL_NAME = "name";
     static final String COL_PUBLIC_KEY = "public_key";
     static final String COL_PERSON_ID = "person_id";
     static final String COL_PICTURE = "picture";
+    static final long LOCAL_USER_ID = -666;
 
+    private final long mLocalId;
     private final String mId;
     private final String mName;
     private final Uri mFeedUri;
     private final boolean mIsLocalUser;
     private final Context mContext;
 
-    User(Context context, boolean isLocalUser, String name, String personId, Uri feedUri) {
+    DbUser(Context context, boolean isLocalUser, String name, long localId, String personId,
+            Uri feedUri) {
         mIsLocalUser = isLocalUser;
         mName = name;
         mId = personId;
         mFeedUri = feedUri;
         mContext = context;
+        mLocalId = localId;
     }
 
     public String getId() {
         return mId;
+    }
+
+    /**
+     * Returns the local database id for this user.
+     */
+    public long getLocalId() {
+        return mLocalId;
     }
 
     public String getName() {
@@ -67,54 +84,6 @@ public class User {
             }
             byte[] pic = c.getBlob(c.getColumnIndexOrThrow(COL_PICTURE));
             return BitmapFactory.decodeByteArray(pic, 0, pic.length);
-        } finally {
-            if (c != null) {
-                c.close();
-            }
-        }
-    }
-
-    public static User getUser(Context context, Uri feedUri, String personId) {
-        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
-                feedUri.getLastPathSegment());
-        String[] projection = { COL_NAME };
-        String selection = User.COL_PERSON_ID + " = ?";
-        String[] selectionArgs = new String[] { personId };
-        String sortOrder = null;
-        Cursor c = context.getContentResolver().query(
-                uri, projection, selection, selectionArgs, sortOrder);
-        try {
-            if (!c.moveToFirst()) {
-                Log.w(Musubi.TAG, "No user found for " + personId);
-                return null;
-            }
-            String name = c.getString(c.getColumnIndexOrThrow(COL_NAME));
-            return new User(context, false, name, personId, feedUri);
-        } finally {
-            if (c != null) {
-                c.close();
-            }
-        }
-    }
-
-    public static User getLocalUser(Context context, Uri feedUri) {
-        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/" +
-                feedUri.getLastPathSegment());
-        String[] projection = { COL_NAME, COL_PUBLIC_KEY };
-        String selection = null;
-        String[] selectionArgs = null;
-        String sortOrder = null;
-        Cursor c = context.getContentResolver().query(
-                uri, projection, selection, selectionArgs, sortOrder);
-        try {
-            if (!c.moveToFirst()) {
-                return null;
-            }
-            String name = c.getString(c.getColumnIndexOrThrow(COL_NAME));
-            String keyStr  = c.getString(c.getColumnIndexOrThrow(COL_PUBLIC_KEY));
-            PublicKey key = publicKeyFromString(keyStr);
-            String personId = makePersonIdForPublicKey(key);
-            return new User(context, true, name, personId, feedUri);
         } finally {
             if (c != null) {
                 c.close();
