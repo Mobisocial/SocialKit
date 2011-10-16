@@ -5,7 +5,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import mobisocial.socialkit.musubi.Feed;
-import mobisocial.socialkit.musubi.FeedRenderable;
 import mobisocial.socialkit.musubi.Musubi;
 import mobisocial.socialkit.musubi.Musubi.StateObserver;
 import mobisocial.socialkit.musubi.Obj;
@@ -20,6 +19,7 @@ import android.util.Log;
  */
 public class TurnBasedMultiplayer extends Multiplayer {
     public static final String OBJ_MEMBER_CURSOR = "member_cursor";
+    public static final String TYPE_APP_STATE = "appstate";
 
     private JSONObject mLatestState;
     final String[] mMembers;
@@ -35,7 +35,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
         mFeedUri = intent.getParcelableExtra(Musubi.EXTRA_FEED_URI);
         mFeed = Musubi.getInstance(context, intent).getFeed(mFeedUri);
         String selection = Obj.FIELD_TYPE + " = ?";
-        String[] selectionArgs = new String[] { Obj.TYPE_APP_STATE };
+        String[] selectionArgs = new String[] { TYPE_APP_STATE };
         mFeed.setSelection(selection, selectionArgs);
         mFeed.registerStateObserver(mInternalStateObserver);
         JSONObject obj = mFeed.getLatestObj();
@@ -121,7 +121,8 @@ public class TurnBasedMultiplayer extends Multiplayer {
         } catch (JSONException e) {
             Log.e(TAG, "Failed to update cursor.", e);
         }
-        mFeed.postAppStateRenderable(out, thumbnail);
+
+        postAppStateRenderable(out, thumbnail);
         if (DBG) Log.d(TAG, "Sent cursor " + out.optInt(OBJ_MEMBER_CURSOR));
         return true;
     }
@@ -197,5 +198,12 @@ public class TurnBasedMultiplayer extends Multiplayer {
             return User.getLocalUser(mContext, mFeedUri);
         }
         return User.getUser(mContext, mFeedUri, mMembers[memberIndex]);
+    }
+
+    private void postAppStateRenderable(JSONObject state, FeedRenderable thumbnail) {
+        try {
+            JSONObject b = new JSONObject(state.toString());
+            thumbnail.toJson(b);
+        } catch (JSONException e) {}
     }
 }

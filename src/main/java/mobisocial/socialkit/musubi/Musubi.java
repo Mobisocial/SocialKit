@@ -1,6 +1,8 @@
 
 package mobisocial.socialkit.musubi;
 
+import mobisocial.socialkit.musubi.obj.BasicObj;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,7 +28,6 @@ public class Musubi {
     private final Intent mIntent;
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
-    private final MusubiContext mMusubiContext;
 
     public static boolean isMusubiInstalled(Context context) {
         final Intent intent = new Intent(Intent.ACTION_MAIN, null);
@@ -64,7 +65,6 @@ public class Musubi {
     private Musubi(Context context, Intent intent) {
         mContext = context;
         mIntent = intent;
-        mMusubiContext = MusubiContext.forAndroidContext(context);
         mContentProviderThread = new ContentProviderThread();
         mContentProviderThread.start();
     }
@@ -121,17 +121,5 @@ public class Musubi {
                 this.cv = cv;
             }
         }
-    }
-
-    public MusubiContext getEnvironment() {
-        return mMusubiContext;
-    }
-
-    public static Obj objForUri(Uri uri) {
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("uri", uri);
-        } catch (JSONException e) {}
-        return new Obj.Generic(Obj.TYPE_URI, obj);
     }
 }

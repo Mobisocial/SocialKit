@@ -144,23 +144,9 @@ public class Feed {
     }
 
     public void postObj(Obj obj) {
-        postInternal(obj.getType(), obj.getJson());
-    }
-
-    public void postAppStateRenderable(JSONObject state, FeedRenderable thumbnail) {
-        try {
-            JSONObject b = new JSONObject(state.toString());
-            thumbnail.toJson(b);
-            postInternal(Obj.TYPE_APP_STATE, b);
-        } catch (JSONException e) {
-            Log.e(TAG, "Error posting obj", e);
-        }
-    }
-
-    private void postInternal(String type, JSONObject obj) {
         ContentValues values = new ContentValues();
-        values.put("type", type);
-        values.put("json", obj.toString());
+        values.put("type", obj.getType());
+        values.put("json", obj.getJson().toString());
         mMusubi.getContentProviderThread().insert(mUri, values);
     }
 
