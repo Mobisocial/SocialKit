@@ -36,7 +36,7 @@ import android.util.Log;
  * Use the DungBeetle APIs in your application.
  */
 public class Musubi {
-    static final String TAG = "SocialKit-DB";
+    public static final String TAG = "SocialKit-DB";
     public static final String AUTHORITY = "org.mobisocial.db";
 
     public static final String EXTRA_FEED_URI = "mobisocial.db.FEED";

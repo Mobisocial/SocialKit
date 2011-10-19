@@ -16,8 +16,14 @@
 
 package mobisocial.socialkit.musubi.multiplayer;
 
+import mobisocial.socialkit.Obj;
+import mobisocial.socialkit.musubi.MemObj;
+import mobisocial.socialkit.musubi.Musubi;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import android.util.Log;
 
 /**
  * Represents a feed entry in a way that can be rendered by the
@@ -60,5 +66,15 @@ public class FeedRenderable {
         FeedRenderable r = new FeedRenderable();
         r.mB64Image = b64JImage;
         return r;
+    }
+
+    public Obj getObj() {
+        JSONObject json = new JSONObject();
+        try {
+            toJson(json);
+        } catch (JSONException e) {
+            Log.e(Musubi.TAG, "Error creating feed renderable");
+        }
+        return new MemObj(TurnBasedMultiplayer.TYPE_APP_STATE, json);
     }
 }

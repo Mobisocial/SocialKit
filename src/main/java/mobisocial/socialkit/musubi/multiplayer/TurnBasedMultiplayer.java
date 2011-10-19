@@ -60,14 +60,14 @@ public class TurnBasedMultiplayer extends Multiplayer {
         String[] selectionArgs = new String[] { TYPE_APP_STATE };
         mAppFeed.setSelection(selection, selectionArgs);
         mAppFeed.registerStateObserver(mInternalStateObserver);
-        JSONObject obj = mAppFeed.getLatestObj();
+        Obj obj = mAppFeed.getLatestObj();
         mLocalMember = mMusubi.userForLocalDevice(mBaseFeedUri).getId();
 
         if (obj == null) {
             // TODO: Temporary.
             if (intent.hasExtra("obj")) {
                 try {
-                    obj = new JSONObject(intent.getStringExtra("obj"));
+                    obj = new MemObj(TYPE_APP_STATE, new JSONObject(intent.getStringExtra("obj")));
                 } catch (JSONException e) {
                 }
             }
@@ -79,13 +79,15 @@ public class TurnBasedMultiplayer extends Multiplayer {
             mLocalMemberIndex = -1;
             return;
         }
-        if (!obj.has(OBJ_MEMBERSHIP)) {
+
+        JSONObject json = obj.getJson();
+        if (json == null || !json.has(OBJ_MEMBERSHIP)) {
             Log.e(TAG, "App state has no members.");
             mMembers = null;
             mLocalMemberIndex = -1;
             return;
         }
-        JSONArray memberArr = obj.optJSONArray(OBJ_MEMBERSHIP);          
+        JSONArray memberArr = json.optJSONArray(OBJ_MEMBERSHIP);          
         mMembers = new String[memberArr.length()];
         int localMemberIndex = -1;
         for (int i = 0; i < memberArr.length(); i++) {
@@ -95,7 +97,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
             }
         }
         mLocalMemberIndex = localMemberIndex;
-        mGlobalMemberCursor = (obj.has(OBJ_MEMBER_CURSOR)) ? obj.optInt(OBJ_MEMBER_CURSOR) : 0;
+        mGlobalMemberCursor = (json.has(OBJ_MEMBER_CURSOR)) ? json.optInt(OBJ_MEMBER_CURSOR) : 0;
     }
 
     /**
@@ -172,9 +174,9 @@ public class TurnBasedMultiplayer extends Multiplayer {
      */
     public JSONObject getLatestState() {
         if (mLatestState == null) {
-            JSONObject obj = mAppFeed.getLatestObj();
-            if (obj != null && obj.has("state")) {
-                mLatestState = obj.optJSONObject("state");
+            Obj obj = mAppFeed.getLatestObj();
+            if (obj != null && obj.getJson() != null && obj.getJson().has("state")) {
+                mLatestState = obj.getJson().optJSONObject("state");
             }
         }
         Log.d(TAG, "returning latest state " + mLatestState);

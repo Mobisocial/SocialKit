@@ -93,18 +93,11 @@ public class DbFeed implements Feed {
         return mJunction;
     }
 
-    public JSONObject getLatestObj() {
+    public DbObj getLatestObj() {
         Cursor cursor = query();
-        if (cursor == null) {
-            return null;
-        }
-        if (cursor.moveToFirst()) {
-            String entry = cursor.getString(cursor.getColumnIndexOrThrow("json"));
+        if (cursor != null && cursor.moveToFirst()) {
             try {
-                JSONObject wrapper = new JSONObject(entry);
-                return wrapper;
-            } catch (JSONException e) {
-                Log.e(TAG, "Error parsing json from db", e);
+                return mMusubi.objForCursor(cursor);
             } finally {
                 cursor.close();
             }
