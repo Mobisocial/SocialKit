@@ -45,6 +45,7 @@ public class Musubi {
     static boolean DBG = true;
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
+    private DbFeed mFeed;
 
     public static boolean isMusubiInstalled(Context context) {
         final Intent intent = new Intent(Intent.ACTION_MAIN, null);
@@ -103,6 +104,16 @@ public class Musubi {
 
     public DbFeed getFeed(Uri feedUri) {
         return new DbFeed(this, feedUri);
+    }
+
+    public void setFeedFromIntent(Intent intent) {
+        mFeed = getFeedFromIntent(intent);
+    }
+    public void setFeed(DbFeed feed) {
+        mFeed = feed;
+    }
+    public DbFeed getFeed() {
+        return mFeed;
     }
 
     public DbObj objForCursor(Cursor cursor) {
@@ -270,10 +281,6 @@ public class Musubi {
                 c.close();
             }
         }
-    }
-
-    public interface StateObserver {
-        public void onUpdate(JSONObject newState);
     }
 
     class ContentProviderThread extends Thread {

@@ -16,17 +16,17 @@
 
 package mobisocial.socialkit.musubi.multiplayer;
 
+import mobisocial.socialkit.Obj;
+import mobisocial.socialkit.musubi.DbFeed;
+import mobisocial.socialkit.musubi.DbUser;
+import mobisocial.socialkit.musubi.FeedObserver;
+import mobisocial.socialkit.musubi.MemObj;
+import mobisocial.socialkit.musubi.Musubi;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import mobisocial.socialkit.Obj;
-import mobisocial.socialkit.musubi.DbFeed;
-import mobisocial.socialkit.musubi.MemObj;
-import mobisocial.socialkit.musubi.Musubi;
-import mobisocial.socialkit.musubi.Musubi.StateObserver;
-import mobisocial.socialkit.musubi.DbUser;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
@@ -44,7 +44,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
     final long mObjHash;
     final String mLocalMember;
     final int mLocalMemberIndex;
-    private StateObserver mAppStateObserver;
+    private FeedObserver mAppStateObserver;
     private final DbFeed mAppFeed;
     private int mGlobalMemberCursor;
     private final Musubi mMusubi;
@@ -184,13 +184,14 @@ public class TurnBasedMultiplayer extends Multiplayer {
     /**
      * Registers a callback to observe changes to the state machine.
      */
-    public void setStateObserver(StateObserver observer) {
+    public void setStateObserver(FeedObserver observer) {
         mAppStateObserver = observer;
     }
 
-    private final StateObserver mInternalStateObserver = new StateObserver() {
+    private final FeedObserver mInternalStateObserver = new FeedObserver() {
         @Override
-        public void onUpdate(JSONObject newState) {
+        public void onUpdate(Obj obj) {
+            JSONObject newState = obj.getJson();
             if (newState == null || !newState.has("state")) return;
             try {
                 Log.d(TAG, "CHECKING OVER " + newState);
@@ -202,7 +203,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
             }
 
             if (mAppStateObserver != null) {
-                mAppStateObserver.onUpdate(mLatestState);
+                mAppStateObserver.onUpdate(obj);
             }
         }
     };

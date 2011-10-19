@@ -93,7 +93,7 @@ public class DbUser implements User {
         Cursor c = mContext.getContentResolver().query(
                 uri, projection, selection, selectionArgs, sortOrder);
         try {
-            if (!c.moveToFirst()) {
+            if (c == null || !c.moveToFirst()) {
                 Log.w(Musubi.TAG, "No picture found for " + mId);
                 return null;
             }

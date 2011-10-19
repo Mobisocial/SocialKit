@@ -21,7 +21,6 @@ import java.util.Set;
 
 import mobisocial.socialkit.Feed;
 import mobisocial.socialkit.Obj;
-import mobisocial.socialkit.musubi.Musubi.StateObserver;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,7 +48,7 @@ public class DbFeed implements Feed {
     private final Musubi mMusubi;
     private final Uri mUri;
     private final String mFeedName;
-    private final Set<StateObserver> mObservers = new HashSet<StateObserver>();
+    private final Set<FeedObserver> mObservers = new HashSet<FeedObserver>();
     private boolean mObservingProvider = false;
     JunctionActor mActor;
     Junction mJunction;
@@ -143,7 +142,7 @@ public class DbFeed implements Feed {
         return query(mSelection, mSelectionArgs);
     }
 
-    public void registerStateObserver(StateObserver observer) {
+    public void registerStateObserver(FeedObserver observer) {
         synchronized (DbFeed.this) {
             mObservers.add(observer);
         }
@@ -155,7 +154,7 @@ public class DbFeed implements Feed {
         }
     }
 
-    public boolean removeStateObserver(StateObserver observer) {
+    public boolean removeStateObserver(FeedObserver observer) {
         return mObservers.remove(observer);
     }
 
@@ -208,7 +207,7 @@ public class DbFeed implements Feed {
 
     private void doContentChanged() {
         if (DBG) Log.d(TAG, "noticed change to feed " + mUri);
-        JSONObject obj = null;
+        Obj obj = null;
         try {
             String selection = null;
             String[] selectionArgs = null;
@@ -217,7 +216,7 @@ public class DbFeed implements Feed {
                     selectionArgs, order);
             if (c.moveToFirst()) {
                 String entry = c.getString(c.getColumnIndexOrThrow("json"));
-                obj = new JSONObject(entry);
+                obj = mMusubi.objForCursor(c);
             }
         } catch (Exception e) {
             Log.e(TAG, "Error querying for app state", e);
@@ -225,7 +224,7 @@ public class DbFeed implements Feed {
         }
 
         synchronized (DbFeed.this) {
-            for (StateObserver observer : mObservers) {
+            for (FeedObserver observer : mObservers) {
                 observer.onUpdate(obj);
             }
         }
