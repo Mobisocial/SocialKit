@@ -35,14 +35,25 @@ import org.json.JSONObject;
  * common names, as enumerated by this class's defined constants.
  */
 public interface Obj {
-    public static final String FIELD_TYPE = "type";
-
     /**
      * A text object, as defined by mobisocial.org.
      */
     public static final String TYPE_TEXT = "status";
 
+    /**
+     * (Required) The "type" of this message, as defined by the signing application.
+     */
     public String getType();
+
+    /**
+     * (Optional) JSON data associated with this Obj.
+     * @return
+     */
     public JSONObject getJson();
+
+    /**
+     * (Optional) binary data associated with this Obj.
+     * @return
+     */
     public byte[] getRaw();
 }

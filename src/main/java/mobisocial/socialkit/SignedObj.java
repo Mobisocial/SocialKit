@@ -31,6 +31,11 @@ public interface SignedObj extends Obj {
     public long getHash();
 
     /**
+     * The application identified with the creation of this Obj.
+     */
+    public String getAppId();
+
+    /**
      * Returns the {@link User} who signed this obj.
      * @return
      */

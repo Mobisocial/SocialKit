@@ -34,6 +34,7 @@ public class DbObj implements SignedObj {
     private static final String TAG = "DbSignedObj";
 
     private final Musubi mMusubi;
+    private final String mAppId;
     private final String mType;
     private final JSONObject mJson;
     private final long mHash;
@@ -65,9 +66,10 @@ public class DbObj implements SignedObj {
     private SoftReference<DbUser> mSenderReference;
     private SoftReference<DbFeed> mFeedReference;
 
-    DbObj(Musubi musubi, String type, JSONObject json,
+    DbObj(Musubi musubi, String appId, String type, JSONObject json,
             long localId, long hash, byte[] raw, long senderId, long seqNum, Uri feedUri) {
         mMusubi = musubi;
+        mAppId = appId;
         mType = type;
         mJson = json;
         mLocalId = localId;
@@ -139,5 +141,10 @@ public class DbObj implements SignedObj {
 
     public static Uri uriForObj(long objId) {
         return OBJ_URI.buildUpon().appendPath("" + objId).build();
+    }
+
+    @Override
+    public String getAppId() {
+        return mAppId;
     }
 }

@@ -126,6 +126,7 @@ public class Musubi {
     public DbObj objForCursor(Cursor cursor) {
         try {
             final long localId = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_ID));
+            final String appId = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_APP_ID));
             final String type = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_TYPE));
             final JSONObject json = new JSONObject(
                     cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_JSON)));
@@ -143,7 +144,7 @@ public class Musubi {
             } else {
                 raw = cursor.getBlob(cursor.getColumnIndexOrThrow(DbObj.COL_RAW));
             }
-            return new DbObj(this, type, json, localId, hash, raw, senderId, seqNum, feedUri);
+            return new DbObj(this, type, appId, json, localId, hash, raw, senderId, seqNum, feedUri);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -152,7 +153,7 @@ public class Musubi {
 
     public DbObj objForId(long localId) {
         Cursor cursor = mContext.getContentResolver().query(DbObj.OBJ_URI,
-                new String[] { DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
+                new String[] { DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
                 DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_HASH, DbObj.COL_FEED_NAME },
                 DbObj.COL_ID + " = ?", new String[] { String.valueOf(localId) }, null);
         try {
@@ -161,16 +162,18 @@ public class Musubi {
                 return null;
             }
 
-            final String type = cursor.getString(0);
-            final JSONObject json = new JSONObject(cursor.getString(1));
-            final byte[] raw = cursor.getBlob(2);
-            final long senderId = cursor.getLong(3);
-            final long seqNum = cursor.getLong(4);
-            final long hash = cursor.getLong(5);
-            final String name = cursor.getString(6);
+            int q = 0;
+            final String appId = cursor.getString(q++);
+            final String type = cursor.getString(q++);
+            final JSONObject json = new JSONObject(cursor.getString(q++));
+            final byte[] raw = cursor.getBlob(q++);
+            final long senderId = cursor.getLong(q++);
+            final long seqNum = cursor.getLong(q++);
+            final long hash = cursor.getLong(q++);
+            final String name = cursor.getString(q++);
             final Uri feedUri = DbFeed.uriForName(name);
 
-            return new DbObj(this, type, json, localId, hash, raw, senderId, seqNum, feedUri);
+            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum, feedUri);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -183,7 +186,7 @@ public class Musubi {
 
     public DbObj objForHash(long hash) {
         Cursor cursor = mContext.getContentResolver().query(DbObj.OBJ_URI,
-                new String[] { DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
+                new String[] { DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
                 DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_ID, DbObj.COL_FEED_NAME },
                 DbObj.COL_HASH + " = ?", new String[] { String.valueOf(hash) }, null);
         try {
@@ -192,16 +195,18 @@ public class Musubi {
                 return null;
             }
 
-            final String type = cursor.getString(0);
-            final JSONObject json = new JSONObject(cursor.getString(1));
-            final byte[] raw = cursor.getBlob(2);
-            final long senderId = cursor.getLong(3);
-            final long seqNum = cursor.getLong(4);
-            final long localId = cursor.getLong(5);
-            final String name = cursor.getString(6);
+            int q = 0;
+            final String appId = cursor.getString(q++);
+            final String type = cursor.getString(q++);
+            final JSONObject json = new JSONObject(cursor.getString(q++));
+            final byte[] raw = cursor.getBlob(q++);
+            final long senderId = cursor.getLong(q++);
+            final long seqNum = cursor.getLong(q++);
+            final long localId = cursor.getLong(q++);
+            final String name = cursor.getString(q++);
             final Uri feedUri = DbFeed.uriForName(name);
 
-            return new DbObj(this, type, json, localId, hash, raw, senderId, seqNum, feedUri);
+            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum, feedUri);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;

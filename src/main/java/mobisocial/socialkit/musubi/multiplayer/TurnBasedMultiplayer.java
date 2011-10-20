@@ -56,7 +56,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
 
         Uri appFeed = DbFeed.uriForName(mBaseFeedUri.getLastPathSegment() + ":" + mObjHash);
         mAppFeed = mMusubi.getFeed(appFeed);
-        String selection = Obj.FIELD_TYPE + " = ?";
+        String selection = "type = ?";
         String[] selectionArgs = new String[] { TYPE_APP_STATE };
         mAppFeed.setSelection(selection, selectionArgs);
         mAppFeed.registerStateObserver(mInternalStateObserver);
