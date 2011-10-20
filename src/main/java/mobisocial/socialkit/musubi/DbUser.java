@@ -98,10 +98,10 @@ public class DbUser implements User {
                 return null;
             }
             byte[] pic = c.getBlob(c.getColumnIndexOrThrow(COL_PICTURE));
-	    if(pic == null) {
-		Log.w(Musubi.TAG, "No picture found for " + mId);
+            if(pic == null) {
+                Log.w(Musubi.TAG, "No picture found for " + mId);
                 return null;
-	    }	
+            }	
             return BitmapFactory.decodeByteArray(pic, 0, pic.length);
         } finally {
             if (c != null) {
