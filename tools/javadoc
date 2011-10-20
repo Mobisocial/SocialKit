@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mvn javadoc:javadoc && google-chrome target/apidocs/index.html
