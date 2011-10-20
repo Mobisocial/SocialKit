@@ -227,7 +227,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
     private void postAppStateRenderable(JSONObject state, FeedRenderable thumbnail) {
         try {
             JSONObject b = new JSONObject(state.toString());
-            thumbnail.toJson(b);
+            thumbnail.withJson(b);
             mAppFeed.postObj(new MemObj(TYPE_APP_STATE, b));
         } catch (JSONException e) {}
     }

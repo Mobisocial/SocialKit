@@ -18,12 +18,9 @@ package mobisocial.socialkit.musubi.multiplayer;
 
 import mobisocial.socialkit.Obj;
 import mobisocial.socialkit.musubi.MemObj;
-import mobisocial.socialkit.musubi.Musubi;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.util.Log;
 
 /**
  * Represents a feed entry in a way that can be rendered by the
@@ -38,16 +35,21 @@ public class FeedRenderable {
     private String mText;
     private String mB64Image;
 
-    /* package */ void toJson(JSONObject json) throws JSONException {
-        if (mHtml != null) {
-            json.put(OBJ_HTML, mHtml);
+    public JSONObject withJson(JSONObject json) {
+        if (json == null) json = new JSONObject();
+        try {
+            if (mHtml != null) {
+                json.put(OBJ_HTML, mHtml);
+            }
+            if (mText != null) {
+                json.put(OBJ_TEXT, mText);
+            }
+            if (mB64Image != null) {
+                json.put(OBJ_B64_JPEG, mB64Image);
+            }
+        } catch (JSONException e) {
         }
-        if (mText != null) {
-            json.put(OBJ_TEXT, mText);
-        }
-        if (mB64Image != null) {
-            json.put(OBJ_B64_JPEG, mB64Image);
-        }
+        return json;
     }
 
     public static FeedRenderable fromHtml(String html) {
@@ -68,13 +70,8 @@ public class FeedRenderable {
         return r;
     }
 
+    @Deprecated
     public Obj getObj() {
-        JSONObject json = new JSONObject();
-        try {
-            toJson(json);
-        } catch (JSONException e) {
-            Log.e(Musubi.TAG, "Error creating feed renderable");
-        }
-        return new MemObj(TurnBasedMultiplayer.TYPE_APP_STATE, json);
+        return new MemObj(TurnBasedMultiplayer.TYPE_APP_STATE, withJson(new JSONObject()));
     }
 }

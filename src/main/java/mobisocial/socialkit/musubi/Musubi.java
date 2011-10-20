@@ -80,6 +80,13 @@ public class Musubi {
         }
     }
 
+    private Musubi(Activity activity) {
+        mContext = activity;
+        setFeedFromIntent(activity.getIntent());
+        mContentProviderThread = new ContentProviderThread();
+        mContentProviderThread.start();
+    }
+
     private Musubi(Context context) {
         mContext = context;
         mContentProviderThread = new ContentProviderThread();

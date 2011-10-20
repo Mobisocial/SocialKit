@@ -35,6 +35,12 @@ public class MemObj implements Obj {
     private final JSONObject mJson;
     private final byte[] mRaw;
 
+    public MemObj(String type) {
+        mType = type;
+        mJson = null;
+        mRaw = null;
+    }
+
     public MemObj(String type, JSONObject json) {
         mType = type;
         mJson = json;
