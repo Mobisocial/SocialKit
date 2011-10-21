@@ -108,6 +108,11 @@ public class DbObj implements SignedObj {
         return f;
     }
 
+    public DbFeed getRelatedFeed() {
+        Uri related = Uri.parse(mFeedUri.toString() + ":" + mHash);
+        return mMusubi.getFeed(related);
+    }
+
     @Override
     public long getHash() {
         return mHash;

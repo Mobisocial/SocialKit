@@ -46,6 +46,7 @@ public class Musubi {
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
     private DbFeed mFeed;
+    private DbObj mObj;
 
     public static boolean isMusubiInstalled(Context context) {
         final Intent intent = new Intent(Intent.ACTION_MAIN, null);
@@ -72,14 +73,6 @@ public class Musubi {
         return null;
     }
 
-    public DbFeed getFeedFromIntent(Intent intent) {
-        if (intent.hasExtra(EXTRA_FEED_URI)) {
-            return new DbFeed(this, (Uri) intent.getParcelableExtra(EXTRA_FEED_URI));
-        } else {
-            return null;
-        }
-    }
-
     private Musubi(Activity activity) {
         mContext = activity;
         setFeedFromIntent(activity.getIntent());
@@ -101,6 +94,12 @@ public class Musubi {
         return new Musubi(activity);
     }
 
+    public static Musubi getInstance(Activity activity, Intent intent) {
+        Musubi m = new Musubi(activity);
+        m.setFeedFromIntent(intent);
+        return m;
+    }
+
     ContentProviderThread getContentProviderThread() {
         return mContentProviderThread;
     }
@@ -114,13 +113,39 @@ public class Musubi {
     }
 
     public void setFeedFromIntent(Intent intent) {
-        mFeed = getFeedFromIntent(intent);
+        if (intent.hasExtra(EXTRA_FEED_URI)) {
+            mFeed = new DbFeed(this, (Uri) intent.getParcelableExtra(EXTRA_FEED_URI));
+            if (mFeed.getUri().getLastPathSegment().contains(":")) {
+                long hash = Long.parseLong(mFeed.getUri().getLastPathSegment().split(":")[1]);
+                mObj = objForHash(hash);
+            }
+        }
+        if (mObj == null) {
+            if (intent.hasExtra(EXTRA_OBJ_HASH)) {
+                long hash = intent.getLongExtra(EXTRA_OBJ_HASH, 0);
+                mObj = objForHash(hash);
+            }
+        }
     }
+
     public void setFeed(DbFeed feed) {
         mFeed = feed;
     }
+
+    public boolean hasFeed() {
+        return mFeed != null;
+    }
+
     public DbFeed getFeed() {
         return mFeed;
+    }
+
+    public boolean hasObj() {
+        return mObj != null;
+    }
+
+    public DbObj getObj() {
+        return mObj;
     }
 
     public DbObj objForCursor(Cursor cursor) {
