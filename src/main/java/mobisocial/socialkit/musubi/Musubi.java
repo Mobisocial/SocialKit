@@ -169,7 +169,7 @@ public class Musubi {
             } else {
                 raw = cursor.getBlob(cursor.getColumnIndexOrThrow(DbObj.COL_RAW));
             }
-            return new DbObj(this, type, appId, json, localId, hash, raw, senderId, seqNum, feedUri);
+            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum, feedUri);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
