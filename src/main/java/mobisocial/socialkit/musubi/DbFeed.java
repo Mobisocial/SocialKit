@@ -123,9 +123,17 @@ public class DbFeed implements Feed {
      * Issues a query over this feed's objects.
      */
     public Cursor query(String selection, String[] selectionArgs) {
-        String order = "_id desc LIMIT 1"; // TODO: fix.
+        String order = "_id desc";
         return mMusubi.getContext().getContentResolver().query(mUri, null, selection,
                 selectionArgs, order);
+    }
+
+    /**
+     * Issues a query over this feed's objects.
+     */
+    public Cursor query(String selection, String[] selectionArgs, String orderBy) {
+        return mMusubi.getContext().getContentResolver().query(mUri, null, selection,
+                selectionArgs, orderBy);
     }
 
     /**

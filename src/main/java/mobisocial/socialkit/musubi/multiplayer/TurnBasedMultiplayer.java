@@ -124,13 +124,8 @@ public class TurnBasedMultiplayer extends Multiplayer {
         return mLocalMemberIndex == mGlobalMemberCursor;
     }
 
-    /**
-     * Updates the state machine with the user's move, passing control
-     * to nextPlayer. The state machine is only updated if it is the
-     * local user's turn.
-     * @return true if a turn was taken.
-     */
-    public boolean takeTurn(int nextPlayer, JSONObject state, FeedRenderable thumbnail) {
+    public boolean takeTurn(JSONArray members, int nextPlayer, JSONObject state,
+            FeedRenderable thumbnail) {
         if (!isMyTurn()) {
             return false;
         }
@@ -138,7 +133,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
         try {
             mGlobalMemberCursor = nextPlayer; 
             out.put(OBJ_MEMBER_CURSOR, mGlobalMemberCursor);
-            out.put(OBJ_MEMBERSHIP, membersJsonArray());
+            out.put(OBJ_MEMBERSHIP, members);
             out.put("state", state);
             mLatestState = state;
         } catch (JSONException e) {
@@ -148,6 +143,16 @@ public class TurnBasedMultiplayer extends Multiplayer {
         postAppStateRenderable(out, thumbnail);
         if (DBG) Log.d(TAG, "Sent cursor " + out.optInt(OBJ_MEMBER_CURSOR));
         return true;
+    }
+
+    /**
+     * Updates the state machine with the user's move, passing control
+     * to nextPlayer. The state machine is only updated if it is the
+     * local user's turn.
+     * @return true if a turn was taken.
+     */
+    public boolean takeTurn(int nextPlayer, JSONObject state, FeedRenderable thumbnail) {
+        return takeTurn(membersJsonArray(), nextPlayer, state, thumbnail);
     }
 
     /**
