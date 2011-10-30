@@ -44,7 +44,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
     final long mObjHash;
     final String mLocalMember;
     final int mLocalMemberIndex;
-    private FeedObserver mAppStateObserver;
+    private StateObserver mAppStateObserver;
     private final DbFeed mAppFeed;
     private int mGlobalMemberCursor;
     private final Musubi mMusubi;
@@ -191,7 +191,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
     /**
      * Registers a callback to observe changes to the state machine.
      */
-    public void setStateObserver(FeedObserver observer) {
+    public void setStateObserver(StateObserver observer) {
         mAppStateObserver = observer;
     }
 
@@ -210,7 +210,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
             }
 
             if (mAppStateObserver != null) {
-                mAppStateObserver.onUpdate(obj);
+                mAppStateObserver.onUpdate(mLatestState);
             }
         }
     };
@@ -235,5 +235,9 @@ public class TurnBasedMultiplayer extends Multiplayer {
             thumbnail.withJson(b);
             mAppFeed.postObj(new MemObj(TYPE_APP_STATE, b));
         } catch (JSONException e) {}
+    }
+
+    public interface StateObserver {
+        public void onUpdate(JSONObject state);
     }
 }
