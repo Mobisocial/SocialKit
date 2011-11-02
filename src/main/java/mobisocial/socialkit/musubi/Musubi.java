@@ -253,6 +253,11 @@ public class Musubi {
                 uri, projection, selection, selectionArgs, sortOrder);
         try {
             if (!c.moveToFirst()) {
+                // The local user is not currently stored in the contacts database.
+                DbUser localUser = userForLocalDevice(feedUri);
+                if (localUser.getId().equals(personId)) {
+                    return localUser;
+                }
                 Log.w(Musubi.TAG, "No user found for " + personId);
                 return null;
             }
