@@ -150,15 +150,39 @@ public class Musubi {
 
     public DbObj objForCursor(Cursor cursor) {
         try {
-            final long localId = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_ID));
-            final String appId = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_APP_ID));
-            final String type = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_TYPE));
-            final JSONObject json = new JSONObject(
-                    cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_JSON)));
-            final long senderId = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_CONTACT_ID));
-            final long hash = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_HASH));
-            final String name = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_FEED_NAME));
-            final long seqNum = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_SEQUENCE_ID));
+            long localId = -1;
+            String appId = null;
+            String type = null;
+            JSONObject json = null;
+            long senderId = -1;
+            long hash = -1;
+            String name = null;
+            long seqNum = -1;
+
+            try {
+                localId = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_ID));
+            } catch (IllegalArgumentException e) {}
+            try {
+                appId = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_APP_ID));
+            } catch (IllegalArgumentException e) {}
+            try {
+                type = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_TYPE));
+            } catch (IllegalArgumentException e) {}
+            try {
+                json = new JSONObject(cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_JSON)));
+            } catch (IllegalArgumentException e) {}
+            try {
+                senderId = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_CONTACT_ID));
+            } catch (IllegalArgumentException e) {}
+            try {
+                hash = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_HASH));
+            } catch (IllegalArgumentException e) {}
+            try {
+                name = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_FEED_NAME));
+            } catch (IllegalArgumentException e) {}
+            try {
+                seqNum = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_SEQUENCE_ID));
+            } catch (IllegalArgumentException e) {}
             final Uri feedUri = DbFeed.uriForName(name);
 
             // Don't require raw field.
