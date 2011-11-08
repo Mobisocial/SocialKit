@@ -42,14 +42,14 @@ public interface SignedObj extends Obj {
     public User getSender();
 
     /**
-     * The number of messages the sender has sent to the feed
-     * given by {@link #getContainingFeed()}.
+     * A user maintains a local sequence number indicating how many messages
+     * he has sent to the feed given by {@link #getFeedName()};
      */
     public long getSequenceNumber();
 
     /**
-     * The feed in which this Obj is contained.
+     * The feed to which this Obj has been sent.
      * @return
      */
-    public Feed getContainingFeed();
+    public String getFeedName();
 }

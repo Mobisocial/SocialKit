@@ -20,7 +20,6 @@ import java.lang.ref.SoftReference;
 
 import mobisocial.socialkit.Feed;
 import mobisocial.socialkit.SignedObj;
-import mobisocial.socialkit.User;
 
 import org.json.JSONObject;
 
@@ -95,7 +94,6 @@ public class DbObj implements SignedObj {
         return mType;
     }
 
-    @Override
     public Feed getContainingFeed() {
         DbFeed f = null;
         if (mFeedReference != null) {
@@ -151,5 +149,10 @@ public class DbObj implements SignedObj {
     @Override
     public String getAppId() {
         return mAppId;
+    }
+
+    @Override
+    public String getFeedName() {
+        return mFeedUri.getLastPathSegment();
     }
 }
