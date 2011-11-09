@@ -19,10 +19,8 @@ package mobisocial.socialkit.musubi;
 import java.util.HashSet;
 import java.util.Set;
 
-import mobisocial.socialkit.Feed;
 import mobisocial.socialkit.Obj;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.ContentValues;
@@ -41,7 +39,7 @@ import edu.stanford.junction.api.messaging.MessageHeader;
  * A Musubi feed of objects.
  * 
  */
-public class DbFeed implements Feed {
+public class DbFeed {
     static final String TAG = Musubi.TAG;
     private static final boolean DBG = true;
 
