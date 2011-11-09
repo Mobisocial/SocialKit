@@ -97,6 +97,9 @@ public class DbObj implements SignedObj {
         return mType;
     }
 
+    /**
+     * Returns the parent feed that bounds this object.
+     */
     public DbFeed getContainingFeed() {
         DbFeed f = null;
         if (mFeedReference != null) {
@@ -109,7 +112,10 @@ public class DbObj implements SignedObj {
         return f;
     }
 
-    public DbFeed getRelatedFeed() {
+    /**
+     * Returns the subfeed that has this object as its head.
+     */
+    public DbFeed getSubfeed() {
         Uri related = Uri.parse(mFeedUri.toString() + ":" + mHash);
         return mMusubi.getFeed(related);
     }
@@ -157,10 +163,5 @@ public class DbObj implements SignedObj {
     @Override
     public String getFeedName() {
         return mFeedUri.getLastPathSegment();
-    }
-
-    @Override
-    public Integer getIntKey() {
-        return mIntKey;
     }
 }

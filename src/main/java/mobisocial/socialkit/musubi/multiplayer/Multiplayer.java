@@ -16,8 +16,6 @@
 
 package mobisocial.socialkit.musubi.multiplayer;
 
-import mobisocial.socialkit.Feed;
-
 public abstract class Multiplayer {
     /**
      * Launch an application with a connection to a {@link Feed}.
