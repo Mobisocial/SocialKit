@@ -56,4 +56,10 @@ public interface Obj {
      * @return
      */
     public byte[] getRaw();
+
+    /**
+     * (Optional) Integer key for this Obj.
+     * @return
+     */
+    public Integer getIntKey();
 }

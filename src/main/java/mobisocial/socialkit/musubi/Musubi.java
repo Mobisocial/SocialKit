@@ -158,6 +158,7 @@ public class Musubi {
             long hash = -1;
             String name = null;
             long seqNum = -1;
+            Integer intKey = null;
 
             try {
                 localId = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_ID));
@@ -183,6 +184,10 @@ public class Musubi {
             try {
                 seqNum = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_SEQUENCE_ID));
             } catch (IllegalArgumentException e) {}
+            try {
+                intKey = cursor.getInt(cursor.getColumnIndexOrThrow(DbObj.COL_KEY_INT));
+            } catch (IllegalArgumentException e) {}
+
             final Uri feedUri = DbFeed.uriForName(name);
 
             // Don't require raw field.
@@ -193,7 +198,8 @@ public class Musubi {
             } else {
                 raw = cursor.getBlob(cursor.getColumnIndexOrThrow(DbObj.COL_RAW));
             }
-            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum, feedUri);
+            return new DbObj(this, appId, type, json, localId, hash, raw, senderId,
+                    seqNum, feedUri, intKey);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -203,8 +209,9 @@ public class Musubi {
     public DbObj objForId(long localId) {
         Cursor cursor = mContext.getContentResolver().query(DbObj.OBJ_URI,
                 new String[] { DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
-                DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_HASH, DbObj.COL_FEED_NAME },
-                DbObj.COL_ID + " = ?", new String[] { String.valueOf(localId) }, null);
+                DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_HASH,
+                DbObj.COL_FEED_NAME, DbObj.COL_KEY_INT }, DbObj.COL_ID + " = ?",
+                new String[] { String.valueOf(localId) }, null);
         try {
             if (!cursor.moveToFirst()) {
                 Log.w(TAG, "Obj " + localId + " not found.");
@@ -221,8 +228,9 @@ public class Musubi {
             final long hash = cursor.getLong(q++);
             final String name = cursor.getString(q++);
             final Uri feedUri = DbFeed.uriForName(name);
+            final Integer intKey = cursor.getInt(q++);
 
-            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum, feedUri);
+            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum, feedUri, intKey);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -236,8 +244,9 @@ public class Musubi {
     public DbObj objForHash(long hash) {
         Cursor cursor = mContext.getContentResolver().query(DbObj.OBJ_URI,
                 new String[] { DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
-                DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_ID, DbObj.COL_FEED_NAME },
-                DbObj.COL_HASH + " = ?", new String[] { String.valueOf(hash) }, null);
+                DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_ID,
+                DbObj.COL_FEED_NAME, DbObj.COL_KEY_INT}, DbObj.COL_HASH + " = ?",
+                new String[] { String.valueOf(hash) }, null);
         try {
             if (!cursor.moveToFirst()) {
                 Log.w(TAG, "Obj " + hash + " not found.");
@@ -254,8 +263,10 @@ public class Musubi {
             final long localId = cursor.getLong(q++);
             final String name = cursor.getString(q++);
             final Uri feedUri = DbFeed.uriForName(name);
+            final Integer intKey = cursor.getInt(q++);
 
-            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum, feedUri);
+            return new DbObj(this, appId, type, json, localId, hash, raw, senderId,
+                    seqNum, feedUri, intKey);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
