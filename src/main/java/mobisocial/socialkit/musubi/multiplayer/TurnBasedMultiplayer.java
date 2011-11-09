@@ -125,7 +125,28 @@ public class TurnBasedMultiplayer extends Multiplayer {
         return mLocalMemberIndex == mGlobalMemberCursor;
     }
 
-    private boolean takeTurnOutOfOrder(JSONArray members, int nextPlayer, JSONObject state, FeedRenderable thumbnail) {
+    /**
+     * Attempts to take a turn despite it not being my turn.
+     * Send a UpdateOutOfOrderObj with n+1 as int field.
+     * 
+     * If it's my turn, I listen for interrupt requests and,
+     * if I see one thats agreeable, I allow it by rebroadcasting
+     * as a state update.
+     */
+    private void takeTurnOutOfOrder(JSONArray members, int nextPlayer, JSONObject state, ObjResponseCallback callback) {
+
+        JSONObject out = new JSONObject();
+        try {
+            out.put(OBJ_MEMBER_CURSOR, nextPlayer);
+            out.put(OBJ_MEMBERSHIP, members);
+            out.put("state", state);
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to update cursor.", e);
+        }
+
+        mAppFeed.postObj(new MemObj(TYPE_APP_STATE, out));
+        if (DBG) Log.d(TAG, "Sent cursor " + out.optInt(OBJ_MEMBER_CURSOR));
+
         // TODO: send message with update state request
         /* reference previous state; can use intKey, or updates relation, or ...
          * intKey:

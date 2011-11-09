@@ -43,7 +43,7 @@ public interface SignedObj extends Obj {
 
     /**
      * A user maintains a local sequence number indicating how many messages
-     * he has sent to the feed given by {@link #getFeedName()};
+     * he has sent to the feed given by {@link #getFeedName()}
      */
     public long getSequenceNumber();
 
