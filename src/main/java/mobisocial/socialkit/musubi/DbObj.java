@@ -18,7 +18,6 @@ package mobisocial.socialkit.musubi;
 
 import java.lang.ref.SoftReference;
 
-import mobisocial.socialkit.Feed;
 import mobisocial.socialkit.SignedObj;
 
 import org.json.JSONObject;
@@ -42,6 +41,7 @@ public class DbObj implements SignedObj {
     private final long mSenderId;
     private final long mSequenceNumber;
     private final Uri mFeedUri;
+    private final int mIntKey;
 
     public static final Uri OBJ_URI = Uri.parse("content://" + Musubi.AUTHORITY + "/obj");
     public static final String TABLE = "objects";
@@ -60,13 +60,15 @@ public class DbObj implements SignedObj {
     public static final String COL_HASH = "hash";
     public static final String COL_DELETED = "deleted";
     public static final String COL_RAW = "raw";
+    public static final String COL_KEY_INT = "key_int1";
 
     // Lazy loaded.
     private SoftReference<DbUser> mSenderReference;
     private SoftReference<DbFeed> mFeedReference;
 
     DbObj(Musubi musubi, String appId, String type, JSONObject json,
-            long localId, long hash, byte[] raw, long senderId, long seqNum, Uri feedUri) {
+            long localId, long hash, byte[] raw, long senderId, long seqNum,
+            Uri feedUri, Integer intKey) {
         mMusubi = musubi;
         mAppId = appId;
         mType = type;
@@ -77,6 +79,7 @@ public class DbObj implements SignedObj {
         mSenderId = senderId;
         mFeedUri = feedUri;
         mSequenceNumber = seqNum;
+        mIntKey = intKey;
     }
 
     @Override
@@ -94,7 +97,7 @@ public class DbObj implements SignedObj {
         return mType;
     }
 
-    public Feed getContainingFeed() {
+    public DbFeed getContainingFeed() {
         DbFeed f = null;
         if (mFeedReference != null) {
             f = mFeedReference.get();
@@ -154,5 +157,10 @@ public class DbObj implements SignedObj {
     @Override
     public String getFeedName() {
         return mFeedUri.getLastPathSegment();
+    }
+
+    @Override
+    public Integer getIntKey() {
+        return mIntKey;
     }
 }

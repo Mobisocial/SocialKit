@@ -34,23 +34,27 @@ public class MemObj implements Obj {
     private final String mType;
     private final JSONObject mJson;
     private final byte[] mRaw;
+    private final Integer mIntKey;
 
     public MemObj(String type) {
         mType = type;
         mJson = null;
         mRaw = null;
+        mIntKey = null;
     }
 
     public MemObj(String type, JSONObject json) {
         mType = type;
         mJson = json;
         mRaw = null;
+        mIntKey = null;
     }
 
     public MemObj(String type, JSONObject json, byte[] raw) {
         mType = type;
         mJson = json;
         mRaw = raw;
+        mIntKey = null;
     }
 
     @Override
@@ -77,5 +81,10 @@ public class MemObj implements Obj {
     @Override
     public byte[] getRaw() {
         return mRaw;
+    }
+
+    @Override
+    public Integer getIntKey() {
+        return mIntKey;
     }
 }

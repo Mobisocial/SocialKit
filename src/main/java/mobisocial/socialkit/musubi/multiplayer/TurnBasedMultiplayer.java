@@ -26,6 +26,7 @@ import mobisocial.socialkit.musubi.Musubi;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xbill.DNS.MFRecord;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -122,6 +123,42 @@ public class TurnBasedMultiplayer extends Multiplayer {
      */
     public boolean isMyTurn() {
         return mLocalMemberIndex == mGlobalMemberCursor;
+    }
+
+    private boolean takeTurnOutOfOrder(JSONArray members, int nextPlayer, JSONObject state, FeedRenderable thumbnail) {
+        // TODO: send message with update state request
+        /* reference previous state; can use intKey, or updates relation, or ...
+         * intKey:
+         * 
+         *   // On something in the database changed:
+         *
+         *   select json
+         *   from objects of type='appstate',
+         *   where 
+         *   order by int_key desc limit 1
+         *   as theAppState
+         */
+
+        String[] projection = null;
+        String selection = "type=?";
+        String[] selectionArgs = new String[] { TYPE_APP_STATE };
+        String orderBy = "int_key DESC limit 1";
+        mAppFeed.query(projection, selection, selectionArgs, orderBy);
+        
+         /*   select json
+         *   from objects of type='interruptstate',
+         *   where 
+         *   order by int_key desc limit 1
+         *   as theInterrupt
+         *   
+         *   if (theInterrupt.intKey > theAppState.intKey) {
+         *      if (isMyTurn()) {
+         *        // TODO: acl
+         *        updateState(theInterrupt)
+         *      }
+         *   }
+         */
+        return false;
     }
 
     public boolean takeTurn(JSONArray members, int nextPlayer, JSONObject state,
