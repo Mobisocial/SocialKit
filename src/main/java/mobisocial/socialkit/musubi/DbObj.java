@@ -164,4 +164,9 @@ public class DbObj implements SignedObj {
     public String getFeedName() {
         return mFeedUri.getLastPathSegment();
     }
+
+    @Override
+    public Integer getIntKey() {
+        return mIntKey;
+    }
 }
