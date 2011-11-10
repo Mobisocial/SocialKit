@@ -172,8 +172,8 @@ public class DbFeed {
         if (obj.getJson() != null) {
             values.put(DbObj.COL_JSON, obj.getJson().toString());
         }
-        if (obj.getIntKey() != null) {
-            values.put(DbObj.COL_KEY_INT, obj.getIntKey());
+        if (obj.getInt() != null) {
+            values.put(DbObj.COL_KEY_INT, obj.getInt());
         }
         if (obj.getRaw() != null) {
             values.put(DbObj.COL_RAW, obj.getRaw());

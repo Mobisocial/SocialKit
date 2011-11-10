@@ -91,7 +91,7 @@ public class MemObj implements Obj {
     }
 
     @Override
-    public Integer getIntKey() {
+    public Integer getInt() {
         return mIntKey;
     }
 }

@@ -166,7 +166,7 @@ public class DbObj implements SignedObj {
     }
 
     @Override
-    public Integer getIntKey() {
+    public Integer getInt() {
         return mIntKey;
     }
 }

@@ -102,7 +102,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
             }
         }
 
-        mLastTurn = (obj.getIntKey() == null) ? 0 : obj.getIntKey();
+        mLastTurn = (obj.getInt() == null) ? 0 : obj.getInt();
         Log.d(TAG, "Read last turn " + mLastTurn);
 
         mLocalMemberIndex = localMemberIndex;
@@ -192,7 +192,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
             if (obj != null && obj.getJson() != null && obj.getJson().has("state")) {
                 mLatestState = obj.getJson().optJSONObject("state");
             }
-            Log.d(TAG, "returning latest state " + mLatestState + "; " + obj.getIntKey());
+            Log.d(TAG, "returning latest state " + mLatestState + "; " + obj.getInt());
         }
         return mLatestState;
     }
@@ -207,7 +207,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
     private final FeedObserver mInternalStateObserver = new FeedObserver() {
         @Override
         public void onUpdate(Obj obj) {
-            Integer turnTaken = obj.getIntKey();
+            Integer turnTaken = obj.getInt();
             if (turnTaken == null) {
                 Log.w(TAG, "no turn taken.");
                 return;
