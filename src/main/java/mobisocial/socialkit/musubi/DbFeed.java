@@ -51,8 +51,10 @@ public class DbFeed {
     JunctionActor mActor;
     Junction mJunction;
 
+    private String[] mProjection = null;
     private String mSelection = null;
     private String[] mSelectionArgs = null;
+    private String mSortOrder = null;
 
     DbFeed(Musubi musubi, Uri feedUri) {
         mMusubi = musubi;
@@ -108,6 +110,13 @@ public class DbFeed {
         mSelectionArgs = selectionArgs;
     }
 
+    public void setQueryArgs(String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        mProjection = projection;
+        mSelection = selection;
+        mSelectionArgs = selectionArgs;
+        mSortOrder = sortOrder;
+    }
+
     /**
      * Issues a query over this feed's objects.
      */
@@ -138,7 +147,7 @@ public class DbFeed {
      * Issues a query over this feed's objects.
      */
     public Cursor query() {
-        return query(mSelection, mSelectionArgs);
+        return query(mProjection, mSelection, mSelectionArgs, mSortOrder);
     }
 
     public void registerStateObserver(FeedObserver observer) {
@@ -159,8 +168,16 @@ public class DbFeed {
 
     public void postObj(Obj obj) {
         ContentValues values = new ContentValues();
-        values.put("type", obj.getType());
-        values.put("json", obj.getJson().toString());
+        values.put(DbObj.COL_TYPE, obj.getType());
+        if (obj.getJson() != null) {
+            values.put(DbObj.COL_JSON, obj.getJson().toString());
+        }
+        if (obj.getIntKey() != null) {
+            values.put(DbObj.COL_KEY_INT, obj.getIntKey());
+        }
+        if (obj.getRaw() != null) {
+            values.put(DbObj.COL_RAW, obj.getRaw());
+        }
         mMusubi.getContentProviderThread().insert(mUri, values);
     }
 

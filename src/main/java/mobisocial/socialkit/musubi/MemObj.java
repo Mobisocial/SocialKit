@@ -57,6 +57,13 @@ public class MemObj implements Obj {
         mIntKey = null;
     }
 
+    public MemObj(String type, JSONObject json, byte[] raw, Integer intKey) {
+        mType = type;
+        mJson = json;
+        mRaw = raw;
+        mIntKey = intKey;
+    }
+
     @Override
     public String getType() {
         return mType;
