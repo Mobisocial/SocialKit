@@ -79,16 +79,19 @@ public class DbUser implements User {
 
     public Bitmap getPicture() {
         Uri uri;
+
+        String selection = null;
+        String[] selectionArgs = null;
         if (!mIsLocalUser) {
             uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
                     mFeedUri.getLastPathSegment());
+            selection = COL_ID + " = ?";
+            selectionArgs = new String[] { Long.toString(mLocalId) };
         } else {
             uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/" +
                     mFeedUri.getLastPathSegment());
         }
         String[] projection = { COL_PICTURE };
-        String selection = null;
-        String[] selectionArgs = null;
         String sortOrder = null;
         Cursor c = mContext.getContentResolver().query(
                 uri, projection, selection, selectionArgs, sortOrder);
