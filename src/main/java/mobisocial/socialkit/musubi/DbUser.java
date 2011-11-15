@@ -35,9 +35,9 @@ import android.util.Log;
 
 /**
  * A User object with details backed by a database cursor.
- *
+ * {@hide}
  */
-public class DbUser implements User {
+public abstract class DbUser implements User {
     static final String COL_ID = "_id";
     static final String COL_NAME = "name";
     static final String COL_PUBLIC_KEY = "public_key";
@@ -45,70 +45,79 @@ public class DbUser implements User {
     static final String COL_PICTURE = "picture";
     static final long LOCAL_USER_ID = -666;
 
-    private final long mLocalId;
-    private final String mId;
-    private final String mName;
-    private final Uri mFeedUri;
-    private final boolean mIsLocalUser;
-    private final Context mContext;
-
-    DbUser(Context context, boolean isLocalUser, String name, long localId, String personId,
+    public static DbUser forFeedDetails(Context context, boolean isLocalUser, String name, long localId, String personId,
             Uri feedUri) {
-        mIsLocalUser = isLocalUser;
-        mName = name;
-        mId = personId;
-        mFeedUri = feedUri;
-        mContext = context;
-        mLocalId = localId;
+        return new InFeedDbUser(context, isLocalUser, name, localId, personId, feedUri);
     }
 
-    public String getId() {
-        return mId;
-    }
+    public abstract long getLocalId();
 
-    /**
-     * Returns the local database id for this user.
-     */
-    public long getLocalId() {
-        return mLocalId;
-    }
+    static class InFeedDbUser extends DbUser {
+        private final long mLocalId;
+        private final String mId;
+        private final String mName;
+        private final Uri mFeedUri;
+        private final boolean mIsLocalUser;
+        private final Context mContext;
 
-    public String getName() {
-        return mName;
-    }
-
-    public Bitmap getPicture() {
-        Uri uri;
-
-        String selection = null;
-        String[] selectionArgs = null;
-        if (!mIsLocalUser) {
-            uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
-                    mFeedUri.getLastPathSegment());
-            selection = COL_ID + " = ?";
-            selectionArgs = new String[] { Long.toString(mLocalId) };
-        } else {
-            uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/" +
-                    mFeedUri.getLastPathSegment());
+        InFeedDbUser(Context context, boolean isLocalUser, String name, long localId, String personId,
+                Uri feedUri) {
+            mIsLocalUser = isLocalUser;
+            mName = name;
+            mId = personId;
+            mFeedUri = feedUri;
+            mContext = context;
+            mLocalId = localId;
         }
-        String[] projection = { COL_PICTURE };
-        String sortOrder = null;
-        Cursor c = mContext.getContentResolver().query(
-                uri, projection, selection, selectionArgs, sortOrder);
-        try {
-            if (c == null || !c.moveToFirst()) {
-                Log.w(Musubi.TAG, "No picture found for " + mId);
-                return null;
+
+        public String getId() {
+            return mId;
+        }
+
+        /**
+         * Returns the local database id for this user.
+         */
+        public long getLocalId() {
+            return mLocalId;
+        }
+
+        public String getName() {
+            return mName;
+        }
+
+        public Bitmap getPicture() {
+            Uri uri;
+
+            String selection = null;
+            String[] selectionArgs = null;
+            if (!mIsLocalUser) {
+                uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
+                        mFeedUri.getLastPathSegment());
+                selection = COL_ID + " = ?";
+                selectionArgs = new String[] { Long.toString(mLocalId) };
+            } else {
+                uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/" +
+                        mFeedUri.getLastPathSegment());
             }
-            byte[] pic = c.getBlob(c.getColumnIndexOrThrow(COL_PICTURE));
-            if(pic == null) {
-                Log.w(Musubi.TAG, "No picture found for " + mId);
-                return null;
-            }	
-            return BitmapFactory.decodeByteArray(pic, 0, pic.length);
-        } finally {
-            if (c != null) {
-                c.close();
+            String[] projection = { COL_PICTURE };
+            String sortOrder = null;
+            Cursor c = mContext.getContentResolver().query(
+                    uri, projection, selection, selectionArgs, sortOrder);
+            try {
+                if (c == null || !c.moveToFirst()) {
+                    Log.w(Musubi.TAG, "No picture found for " + mId);
+                    return null;
+                }
+                byte[] pic = c.getBlob(c.getColumnIndexOrThrow(COL_PICTURE));
+                if(pic == null) {
+                    Log.w(Musubi.TAG, "No picture found for " + mId);
+                    return null;
+                }
+                return BitmapFactory.decodeByteArray(pic, 0, pic.length);
+            } finally {
+                if (c != null) {
+                    c.close();
+                }
             }
         }
     }
