@@ -204,7 +204,7 @@ public class DbFeed {
             String name = cursor.getString(nameIndex);
             String globalId = cursor.getString(globalIdIndex);
             long localId = cursor.getLong(localIdIndex);
-            users.add(new DbUser(mMusubi.getContext(), false, name,
+            users.add(DbUser.forFeedDetails(mMusubi.getContext(), false, name,
                     localId, globalId, mUri));
             cursor.moveToNext();
         }
