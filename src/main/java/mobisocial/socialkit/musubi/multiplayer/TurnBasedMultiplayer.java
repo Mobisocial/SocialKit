@@ -191,8 +191,8 @@ public class TurnBasedMultiplayer extends Multiplayer {
             Obj obj = mAppFeed.getLatestObj();
             if (obj != null && obj.getJson() != null && obj.getJson().has("state")) {
                 mLatestState = obj.getJson().optJSONObject("state");
+				Log.d(TAG, "returning latest state " + mLatestState + "; " + obj.getInt());
             }
-            Log.d(TAG, "returning latest state " + mLatestState + "; " + obj.getInt());
         }
         return mLatestState;
     }
