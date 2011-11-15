@@ -18,10 +18,12 @@ package mobisocial.socialkit.musubi;
 
 import java.lang.ref.SoftReference;
 
+import mobisocial.socialkit.Obj;
 import mobisocial.socialkit.SignedObj;
 
 import org.json.JSONObject;
 
+import android.content.ContentValues;
 import android.net.Uri;
 
 /**
@@ -168,5 +170,20 @@ public class DbObj implements SignedObj {
     @Override
     public Integer getInt() {
         return mIntKey;
+    }
+
+    public static ContentValues toContentValues(Obj obj) {
+        ContentValues values = new ContentValues();
+        values.put(DbObj.COL_TYPE, obj.getType());
+        if (obj.getJson() != null) {
+            values.put(DbObj.COL_JSON, obj.getJson().toString());
+        }
+        if (obj.getInt() != null) {
+            values.put(DbObj.COL_KEY_INT, obj.getInt());
+        }
+        if (obj.getRaw() != null) {
+            values.put(DbObj.COL_RAW, obj.getRaw());
+        }
+        return values;
     }
 }
