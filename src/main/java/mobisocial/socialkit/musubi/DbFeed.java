@@ -75,6 +75,9 @@ public class DbFeed {
         return mUri;
     }
 
+    /**
+     * {@hide}
+     */
     public Junction getJunction() {
         if (mJunction != null) {
             return mJunction;
@@ -213,7 +216,7 @@ public class DbFeed {
 
     private void doContentChanged() {
         if (DBG) Log.d(TAG, "noticed change to feed " + mUri);
-        Obj obj = null;
+        DbObj obj = null;
         try {
             String selection = null;
             String[] selectionArgs = null;
@@ -221,7 +224,6 @@ public class DbFeed {
             Cursor c = mMusubi.getContext().getContentResolver().query(mUri, null, selection,
                     selectionArgs, order);
             if (c.moveToFirst()) {
-                String entry = c.getString(c.getColumnIndexOrThrow("json"));
                 obj = mMusubi.objForCursor(c);
             }
         } catch (Exception e) {

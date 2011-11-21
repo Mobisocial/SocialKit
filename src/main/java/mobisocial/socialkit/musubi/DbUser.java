@@ -45,12 +45,12 @@ public abstract class DbUser implements User {
     static final String COL_PICTURE = "picture";
     static final long LOCAL_USER_ID = -666;
 
+    public abstract long getLocalId();
+
     public static DbUser forFeedDetails(Context context, boolean isLocalUser, String name, long localId, String personId,
             Uri feedUri) {
         return new InFeedDbUser(context, isLocalUser, name, localId, personId, feedUri);
     }
-
-    public abstract long getLocalId();
 
     static class InFeedDbUser extends DbUser {
         private final long mLocalId;

@@ -206,7 +206,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
 
     private final FeedObserver mInternalStateObserver = new FeedObserver() {
         @Override
-        public void onUpdate(Obj obj) {
+        public void onUpdate(DbObj obj) {
             Integer turnTaken = obj.getInt();
             if (turnTaken == null) {
                 Log.w(TAG, "no turn taken.");
