@@ -27,7 +27,6 @@ import mobisocial.socialkit.musubi.Musubi;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xbill.DNS.MFRecord;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -39,6 +38,7 @@ import android.util.Log;
 public class TurnBasedMultiplayer extends Multiplayer {
     public static final String OBJ_MEMBER_CURSOR = "member_cursor";
     public static final String TYPE_APP_STATE = "appstate";
+    public static final String TYPE_INTERRUPT_REQUEST = "interrupt";
 
     private JSONObject mLatestState;
     final String[] mMembers;
@@ -142,7 +142,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
      * if I see one thats agreeable, I allow it by rebroadcasting
      * as a state update.
      */
-    private void takeTurnOutOfOrder(JSONArray members, int nextPlayer, JSONObject state, ObjResponseCallback callback) {
+    public void takeTurnOutOfOrder(JSONArray members, int nextPlayer, JSONObject state) {
         JSONObject out = new JSONObject();
         try {
             out.put(OBJ_MEMBER_CURSOR, nextPlayer);
@@ -152,41 +152,8 @@ public class TurnBasedMultiplayer extends Multiplayer {
             Log.e(TAG, "Failed to update cursor.", e);
         }
 
-        mAppFeed.postObj(new MemObj(TYPE_APP_STATE, out));
-        if (DBG) Log.d(TAG, "Sent cursor " + out.optInt(OBJ_MEMBER_CURSOR));
-
-        // TODO: send message with update state request
-        /* reference previous state; can use intKey, or updates relation, or ...
-         * intKey:
-         * 
-         *   // On something in the database changed:
-         *
-         *   select json
-         *   from objects of type='appstate',
-         *   where 
-         *   order by int_key desc limit 1
-         *   as theAppState
-         */
-
-        String[] projection = null;
-        String selection = "type=?";
-        String[] selectionArgs = new String[] { TYPE_APP_STATE };
-        String orderBy = "int_key DESC limit 1";
-        mAppFeed.query(projection, selection, selectionArgs, orderBy);
-        
-         /*   select json
-         *   from objects of type='interruptstate',
-         *   where 
-         *   order by int_key desc limit 1
-         *   as theInterrupt
-         *   
-         *   if (theInterrupt.intKey > theAppState.intKey) {
-         *      if (isMyTurn()) {
-         *        // TODO: acl
-         *        updateState(theInterrupt)
-         *      }
-         *   }
-         */
+        if (DBG) Log.d(TAG, "Attempted interrupt #" + mLastTurn);
+        mAppFeed.postObj(new MemObj(TYPE_INTERRUPT_REQUEST, out, null, mLastTurn));
     }
 
     public boolean takeTurn(JSONArray members, int nextPlayer, JSONObject state,
@@ -231,7 +198,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
         return takeTurn(next, state, thumbnail);
     }
 
-    private JSONArray membersJsonArray() {
+    public JSONArray membersJsonArray() {
         JSONArray r = new JSONArray();
         for (String m : mMembers) {
             r.put(m);
@@ -260,12 +227,35 @@ public class TurnBasedMultiplayer extends Multiplayer {
         mAppStateObserver = observer;
     }
 
+    /**
+     * Handles an interrupt request. It may be useful to override this method
+     * to customize for your needs, be mindful of concurrency issues.
+     */
+    protected void handleInterrupt(int turnRequested, DbObj obj) {
+        if (DBG) Log.d(TAG, "Incoming interrupt!");
+        if (!isMyTurn()) {
+            if (DBG) Log.d(TAG, "not my turn.");
+            return;
+        }
+
+        if (turnRequested != mLastTurn) {
+            if (DBG) Log.d(TAG, "stale state.");
+            return;
+        }
+        if (DBG) Log.d(TAG, "interrupting with " + obj);
+        mAppFeed.postObj(new MemObj(TYPE_APP_STATE, obj.getJson(), null, mLastTurn + 1));
+    }
+
     private final FeedObserver mInternalStateObserver = new FeedObserver() {
         @Override
         public void onUpdate(DbObj obj) {
             Integer turnTaken = obj.getInt();
             if (turnTaken == null) {
                 Log.w(TAG, "no turn taken.");
+                return;
+            }
+            if (TYPE_INTERRUPT_REQUEST.equals(obj.getType())) {
+                handleInterrupt(turnTaken, obj);
                 return;
             }
             if (turnTaken < mLastTurn) {
