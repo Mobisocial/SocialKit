@@ -58,8 +58,8 @@ public interface Obj {
     public byte[] getRaw();
 
     /**
-     * (Optional) Integer key for this Obj.
+     * (Optional) Integer for this Obj.
      * @return
      */
-    public Integer getIntKey();
+    public Integer getInt();
 }

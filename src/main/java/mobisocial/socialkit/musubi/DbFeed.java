@@ -51,8 +51,10 @@ public class DbFeed {
     JunctionActor mActor;
     Junction mJunction;
 
+    private String[] mProjection = null;
     private String mSelection = null;
     private String[] mSelectionArgs = null;
+    private String mSortOrder = null;
 
     DbFeed(Musubi musubi, Uri feedUri) {
         mMusubi = musubi;
@@ -73,6 +75,9 @@ public class DbFeed {
         return mUri;
     }
 
+    /**
+     * {@hide}
+     */
     public Junction getJunction() {
         if (mJunction != null) {
             return mJunction;
@@ -108,6 +113,13 @@ public class DbFeed {
         mSelectionArgs = selectionArgs;
     }
 
+    public void setQueryArgs(String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        mProjection = projection;
+        mSelection = selection;
+        mSelectionArgs = selectionArgs;
+        mSortOrder = sortOrder;
+    }
+
     /**
      * Issues a query over this feed's objects.
      */
@@ -138,7 +150,7 @@ public class DbFeed {
      * Issues a query over this feed's objects.
      */
     public Cursor query() {
-        return query(mSelection, mSelectionArgs);
+        return query(mProjection, mSelection, mSelectionArgs, mSortOrder);
     }
 
     public void registerStateObserver(FeedObserver observer) {
@@ -158,9 +170,7 @@ public class DbFeed {
     }
 
     public void postObj(Obj obj) {
-        ContentValues values = new ContentValues();
-        values.put("type", obj.getType());
-        values.put("json", obj.getJson().toString());
+        ContentValues values = DbObj.toContentValues(obj);
         mMusubi.getContentProviderThread().insert(mUri, values);
     }
 
@@ -197,7 +207,7 @@ public class DbFeed {
             String name = cursor.getString(nameIndex);
             String globalId = cursor.getString(globalIdIndex);
             long localId = cursor.getLong(localIdIndex);
-            users.add(new DbUser(mMusubi.getContext(), false, name,
+            users.add(DbUser.forFeedDetails(mMusubi.getContext(), false, name,
                     localId, globalId, mUri));
             cursor.moveToNext();
         }
@@ -206,7 +216,7 @@ public class DbFeed {
 
     private void doContentChanged() {
         if (DBG) Log.d(TAG, "noticed change to feed " + mUri);
-        Obj obj = null;
+        DbObj obj = null;
         try {
             String selection = null;
             String[] selectionArgs = null;
@@ -214,7 +224,6 @@ public class DbFeed {
             Cursor c = mMusubi.getContext().getContentResolver().query(mUri, null, selection,
                     selectionArgs, order);
             if (c.moveToFirst()) {
-                String entry = c.getString(c.getColumnIndexOrThrow("json"));
                 obj = mMusubi.objForCursor(c);
             }
         } catch (Exception e) {

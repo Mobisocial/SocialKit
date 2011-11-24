@@ -298,7 +298,7 @@ public class Musubi {
             }
             String name = c.getString(c.getColumnIndexOrThrow(DbUser.COL_NAME));
             long localId = c.getLong(c.getColumnIndexOrThrow(DbUser.COL_ID));
-            return new DbUser(mContext, false, name, localId, personId, feedUri);
+            return DbUser.forFeedDetails(mContext, false, name, localId, personId, feedUri);
         } finally {
             if (c != null) {
                 c.close();
@@ -326,7 +326,7 @@ public class Musubi {
 
             String name = c.getString(c.getColumnIndexOrThrow(DbUser.COL_NAME));
             String globalId = c.getString(c.getColumnIndexOrThrow(DbUser.COL_PERSON_ID));
-            return new DbUser(mContext, false, name, localId, globalId, feedUri);
+            return DbUser.forFeedDetails(mContext, false, name, localId, globalId, feedUri);
         } finally {
             if (c != null) {
                 c.close();
@@ -352,7 +352,7 @@ public class Musubi {
             String keyStr  = c.getString(c.getColumnIndexOrThrow(DbUser.COL_PUBLIC_KEY));
             PublicKey key = DbUser.publicKeyFromString(keyStr);
             String personId = DbUser.makePersonIdForPublicKey(key);
-            return new DbUser(mContext, true, name, localId, personId, feedUri);
+            return DbUser.forFeedDetails(mContext, true, name, localId, personId, feedUri);
         } finally {
             if (c != null) {
                 c.close();

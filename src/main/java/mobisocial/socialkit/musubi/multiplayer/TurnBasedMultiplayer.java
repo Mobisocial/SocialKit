@@ -18,6 +18,7 @@ package mobisocial.socialkit.musubi.multiplayer;
 
 import mobisocial.socialkit.Obj;
 import mobisocial.socialkit.musubi.DbFeed;
+import mobisocial.socialkit.musubi.DbObj;
 import mobisocial.socialkit.musubi.DbUser;
 import mobisocial.socialkit.musubi.FeedObserver;
 import mobisocial.socialkit.musubi.MemObj;
@@ -49,6 +50,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
     private final DbFeed mAppFeed;
     private int mGlobalMemberCursor;
     private final Musubi mMusubi;
+    private Integer mLastTurn;
 
     public TurnBasedMultiplayer(Musubi musubi, Intent intent) {
         mMusubi = musubi;
@@ -57,11 +59,14 @@ public class TurnBasedMultiplayer extends Multiplayer {
 
         Uri appFeed = DbFeed.uriForName(mBaseFeedUri.getLastPathSegment() + ":" + mObjHash);
         mAppFeed = mMusubi.getFeed(appFeed);
+        String[] projection = null;
         String selection = "type = ?";
         String[] selectionArgs = new String[] { TYPE_APP_STATE };
-        mAppFeed.setSelection(selection, selectionArgs);
+        String sortOrder = DbObj.COL_KEY_INT + " desc";
+        mAppFeed.setQueryArgs(projection, selection, selectionArgs, sortOrder);
         mAppFeed.registerStateObserver(mInternalStateObserver);
         Obj obj = mAppFeed.getLatestObj();
+        //Log.d(TAG, "The latest obj has " + obj.getIntKey());
         mLocalMember = mMusubi.userForLocalDevice(mBaseFeedUri).getId();
 
         if (obj == null) {
@@ -97,6 +102,10 @@ public class TurnBasedMultiplayer extends Multiplayer {
                 localMemberIndex = i;
             }
         }
+
+        mLastTurn = (obj.getInt() == null) ? 0 : obj.getInt();
+        Log.d(TAG, "Read last turn " + mLastTurn);
+
         mLocalMemberIndex = localMemberIndex;
         mGlobalMemberCursor = (json.has(OBJ_MEMBER_CURSOR)) ? json.optInt(OBJ_MEMBER_CURSOR) : 0;
     }
@@ -134,7 +143,6 @@ public class TurnBasedMultiplayer extends Multiplayer {
      * as a state update.
      */
     private void takeTurnOutOfOrder(JSONArray members, int nextPlayer, JSONObject state, ObjResponseCallback callback) {
-
         JSONObject out = new JSONObject();
         try {
             out.put(OBJ_MEMBER_CURSOR, nextPlayer);
@@ -179,7 +187,6 @@ public class TurnBasedMultiplayer extends Multiplayer {
          *      }
          *   }
          */
-        return false;
     }
 
     public boolean takeTurn(JSONArray members, int nextPlayer, JSONObject state,
@@ -240,9 +247,9 @@ public class TurnBasedMultiplayer extends Multiplayer {
             Obj obj = mAppFeed.getLatestObj();
             if (obj != null && obj.getJson() != null && obj.getJson().has("state")) {
                 mLatestState = obj.getJson().optJSONObject("state");
+				Log.d(TAG, "returning latest state " + mLatestState + "; " + obj.getInt());
             }
         }
-        Log.d(TAG, "returning latest state " + mLatestState);
         return mLatestState;
     }
 
@@ -255,11 +262,20 @@ public class TurnBasedMultiplayer extends Multiplayer {
 
     private final FeedObserver mInternalStateObserver = new FeedObserver() {
         @Override
-        public void onUpdate(Obj obj) {
+        public void onUpdate(DbObj obj) {
+            Integer turnTaken = obj.getInt();
+            if (turnTaken == null) {
+                Log.w(TAG, "no turn taken.");
+                return;
+            }
+            if (turnTaken < mLastTurn) {
+                Log.w(TAG, "Turn " + turnTaken + " is before known turn " + mLastTurn);
+                return;
+            }
+            mLastTurn = turnTaken;
             JSONObject newState = obj.getJson();
             if (newState == null || !newState.has("state")) return;
             try {
-                Log.d(TAG, "CHECKING OVER " + newState);
                 mLatestState = newState.optJSONObject("state");
                 mGlobalMemberCursor = newState.getInt(OBJ_MEMBER_CURSOR);
                 if (DBG) Log.d(TAG, "Updated cursor to " + mGlobalMemberCursor);
@@ -291,7 +307,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
         try {
             JSONObject b = new JSONObject(state.toString());
             thumbnail.withJson(b);
-            mAppFeed.postObj(new MemObj(TYPE_APP_STATE, b));
+            mAppFeed.postObj(new MemObj(TYPE_APP_STATE, b, null, ++mLastTurn));
         } catch (JSONException e) {}
     }
 
