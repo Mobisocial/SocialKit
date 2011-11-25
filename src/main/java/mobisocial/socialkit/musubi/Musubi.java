@@ -16,7 +16,7 @@
 
 package mobisocial.socialkit.musubi;
 
-import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -298,7 +298,7 @@ public class Musubi {
             }
             String name = c.getString(c.getColumnIndexOrThrow(DbUser.COL_NAME));
             long localId = c.getLong(c.getColumnIndexOrThrow(DbUser.COL_ID));
-            return DbUser.forFeedDetails(mContext, false, name, localId, personId, feedUri);
+            return DbUser.forFeedDetails(mContext, name, localId, personId, feedUri);
         } finally {
             if (c != null) {
                 c.close();
@@ -326,7 +326,7 @@ public class Musubi {
 
             String name = c.getString(c.getColumnIndexOrThrow(DbUser.COL_NAME));
             String globalId = c.getString(c.getColumnIndexOrThrow(DbUser.COL_PERSON_ID));
-            return DbUser.forFeedDetails(mContext, false, name, localId, globalId, feedUri);
+            return DbUser.forFeedDetails(mContext, name, localId, globalId, feedUri);
         } finally {
             if (c != null) {
                 c.close();
@@ -350,9 +350,9 @@ public class Musubi {
             long localId = c.getLong(c.getColumnIndexOrThrow(DbUser.COL_ID));
             String name = c.getString(c.getColumnIndexOrThrow(DbUser.COL_NAME));
             String keyStr  = c.getString(c.getColumnIndexOrThrow(DbUser.COL_PUBLIC_KEY));
-            PublicKey key = DbUser.publicKeyFromString(keyStr);
-            String personId = DbUser.makePersonIdForPublicKey(key);
-            return DbUser.forFeedDetails(mContext, true, name, localId, personId, feedUri);
+            RSAPublicKey key = RSACrypto.publicKeyFromString(keyStr);
+            String personId = RSACrypto.makePersonIdForPublicKey(key);
+            return DbUser.forFeedDetails(mContext, name, localId, personId, feedUri);
         } finally {
             if (c != null) {
                 c.close();

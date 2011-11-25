@@ -139,7 +139,7 @@ public class TurnBasedMultiplayer extends Multiplayer {
      * Send a UpdateOutOfOrderObj with n+1 as int field.
      * 
      * If it's my turn, I listen for interrupt requests and,
-     * if I see one thats agreeable, I allow it by rebroadcasting
+     * if I see one that is agreeable, I allow it by rebroadcasting
      * as a state update.
      */
     public void takeTurnOutOfOrder(JSONArray members, int nextPlayer, JSONObject state) {

@@ -141,14 +141,6 @@ public class DbFeed {
     /**
      * Issues a query over this feed's objects.
      */
-    public Cursor query(String selection, String[] selectionArgs, String orderBy) {
-        return mMusubi.getContext().getContentResolver().query(mUri, null, selection,
-                selectionArgs, orderBy);
-    }
-
-    /**
-     * Issues a query over this feed's objects.
-     */
     public Cursor query() {
         return query(mProjection, mSelection, mSelectionArgs, mSortOrder);
     }
@@ -207,7 +199,7 @@ public class DbFeed {
             String name = cursor.getString(nameIndex);
             String globalId = cursor.getString(globalIdIndex);
             long localId = cursor.getLong(localIdIndex);
-            users.add(DbUser.forFeedDetails(mMusubi.getContext(), false, name,
+            users.add(DbUser.forFeedDetails(mMusubi.getContext(), name,
                     localId, globalId, mUri));
             cursor.moveToNext();
         }

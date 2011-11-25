@@ -23,16 +23,20 @@ public class FastBase64 {
 	public static byte[] encode(byte[] data) {
 		if(data == null)
 			return new byte[0]; 
-		if(Build.VERSION.SDK_INT >= 8)
-			return Base64.encode(data, Base64.DEFAULT);
+		try {
+    		if(Build.VERSION.SDK_INT >= 8)
+    			return Base64.encode(data, Base64.DEFAULT);
+		} catch (NoClassDefFoundError e) {}
 		return mobisocial.socialkit.util.Base64.encodeToByte(data, false);
 	}
 	public static String encodeToString(byte[] data) {
 		if (data == null) {
 			return "";
 		}
-		if(Build.VERSION.SDK_INT >= 8)
-			return Base64.encodeToString(data, Base64.DEFAULT);
+		try {
+    	    if(Build.VERSION.SDK_INT >= 8)
+    			return Base64.encodeToString(data, Base64.DEFAULT);
+		} catch (NoClassDefFoundError e) {}
 		return mobisocial.socialkit.util.Base64.encodeToString(data, false);
 	}
 	public static byte[] decode(byte[] data) {
@@ -45,8 +49,10 @@ public class FastBase64 {
 	public static byte[] decode(String data) {
 		if(data == null)
 			return new byte[0]; 
-		if(Build.VERSION.SDK_INT >= 8)
-			return Base64.decode(data, Base64. DEFAULT);
+		try {
+    		if(Build.VERSION.SDK_INT >= 8)
+    		    return Base64.decode(data, Base64. DEFAULT);
+		} catch (NoClassDefFoundError e) {}
 		return mobisocial.socialkit.util.Base64.decode(data);
 	}
 }
