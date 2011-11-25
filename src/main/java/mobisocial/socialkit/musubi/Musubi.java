@@ -318,6 +318,10 @@ public class Musubi {
         String sortOrder = null;
         Cursor c = mContext.getContentResolver().query(
                 uri, projection, selection, selectionArgs, sortOrder);
+        if (c == null) {
+            Log.w(Musubi.TAG, "Null cursor for user query " + localId);
+            return null;
+        }
         try {
             if (!c.moveToFirst()) {
                 Log.w(Musubi.TAG, "No user found for " + localId);
@@ -328,9 +332,7 @@ public class Musubi {
             String globalId = c.getString(c.getColumnIndexOrThrow(DbUser.COL_PERSON_ID));
             return DbUser.forFeedDetails(mContext, name, localId, globalId, feedUri);
         } finally {
-            if (c != null) {
-                c.close();
-            }
+            c.close();
         }
     }
 
