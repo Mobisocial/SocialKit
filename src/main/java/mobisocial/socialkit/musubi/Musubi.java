@@ -59,20 +59,6 @@ public class Musubi {
         return intent.hasExtra(EXTRA_FEED_URI);
     }
 
-    /**
-     * @hide
-     */
-    public void startInviteMembersActivity() {
-
-    }
-
-    /**
-     * @hide
-     */
-    public Uri getInvitationUri() {
-        return null;
-    }
-
     private Musubi(Activity activity) {
         mContext = activity;
         setFeedFromIntent(activity.getIntent());

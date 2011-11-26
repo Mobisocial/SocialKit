@@ -25,8 +25,7 @@ package mobisocial.socialkit;
 public interface SignedObj extends Obj {
 
     /**
-     * Returns a hash of the user's signature over this obj, bound within a
-     * single containing feed.
+     * Returns a hash of the user's signature over this obj.
      */
     public long getHash();
 
