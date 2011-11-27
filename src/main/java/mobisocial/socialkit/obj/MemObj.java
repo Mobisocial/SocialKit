@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package mobisocial.socialkit.musubi;
+package mobisocial.socialkit.obj;
 
 import org.json.JSONException;
 import org.json.JSONObject;

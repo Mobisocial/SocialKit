@@ -1,4 +1,4 @@
-package mobisocial.socialkit.musubi;
+package mobisocial.socialkit.obj;
 
 import mobisocial.socialkit.musubi.multiplayer.FeedRenderable;
 import mobisocial.socialkit.musubi.multiplayer.Multiplayer;
@@ -6,14 +6,14 @@ import mobisocial.socialkit.musubi.multiplayer.Multiplayer;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public abstract class AppObj extends MemObj {
+public abstract class AppStateObj extends MemObj {
     public static final String TYPE = "appstate";
     public static final String FIELD_INTENT_ACTION = "intentAction";
 
     public abstract FeedRenderable getRenderable();
     public abstract JSONObject getData();
 
-    public AppObj() {
+    public AppStateObj() {
         super(TYPE);
     }
 

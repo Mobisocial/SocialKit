@@ -21,8 +21,8 @@ import mobisocial.socialkit.musubi.DbFeed;
 import mobisocial.socialkit.musubi.DbObj;
 import mobisocial.socialkit.musubi.DbUser;
 import mobisocial.socialkit.musubi.FeedObserver;
-import mobisocial.socialkit.musubi.MemObj;
 import mobisocial.socialkit.musubi.Musubi;
+import mobisocial.socialkit.obj.MemObj;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -296,7 +296,9 @@ public class TurnBasedMultiplayer extends Multiplayer {
     private void postAppStateRenderable(JSONObject state, FeedRenderable thumbnail) {
         try {
             JSONObject b = new JSONObject(state.toString());
-            thumbnail.withJson(b);
+            if (thumbnail != null) {
+                thumbnail.withJson(b);
+            }
             mAppFeed.postObj(new MemObj(TYPE_APP_STATE, b, null, ++mLastTurn));
         } catch (JSONException e) {}
     }
