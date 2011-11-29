@@ -59,25 +59,17 @@ public class Musubi {
         return intent.hasExtra(EXTRA_FEED_URI);
     }
 
-    private Musubi(Activity activity) {
-        mContext = activity;
-        setFeedFromIntent(activity.getIntent());
-        mContentProviderThread = new ContentProviderThread();
-        mContentProviderThread.start();
-    }
-
     private Musubi(Context context) {
         mContext = context;
+        if (context instanceof Activity) {
+            setFeedFromIntent(((Activity)context).getIntent());
+        }
         mContentProviderThread = new ContentProviderThread();
         mContentProviderThread.start();
     }
 
     public static Musubi getInstance(Context context) {
         return new Musubi(context);
-    }
-
-    public static Musubi getInstance(Activity activity) {
-        return new Musubi(activity);
     }
 
     public static Musubi getInstance(Activity activity, Intent intent) {
@@ -346,6 +338,21 @@ public class Musubi {
                 c.close();
             }
         }
+    }
+
+    public Uri getAppDataUri() {
+        return new Uri.Builder()
+            .scheme("content")
+            .authority(AUTHORITY)
+            .appendPath("app")
+            .appendPath(mContext.getPackageName()).build();
+    }
+
+    public Cursor queryAppData(String[] projection, String selection, String[] selectionArgs,
+            String order) {
+        Uri uri = getAppDataUri();
+        return mContext.getContentResolver().query(uri, null, selection,
+                selectionArgs, order);
     }
 
     class ContentProviderThread extends Thread {
