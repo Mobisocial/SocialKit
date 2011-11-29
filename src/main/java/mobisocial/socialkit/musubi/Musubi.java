@@ -110,16 +110,8 @@ public class Musubi {
         mFeed = feed;
     }
 
-    public boolean hasFeed() {
-        return mFeed != null;
-    }
-
     public DbFeed getFeed() {
         return mFeed;
-    }
-
-    public boolean hasObj() {
-        return mObj != null;
     }
 
     public DbObj getObj() {
