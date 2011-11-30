@@ -119,16 +119,18 @@ public abstract class DbUser implements User {
         public String getAttribute(String attr) {
             if (ATTR_RSA_PUBLIC_KEY.equals(attr)) {
                 Uri uri;
+                String selection = null;
+                String[] selectionArgs = null;
                 if (mIsLocalUser) {
                     uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/" +
                             mFeedUri.getLastPathSegment());
                 } else {
                     uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
                             mFeedUri.getLastPathSegment());
+                    selection = COL_ID + " = ?";
+                    selectionArgs = new String[] { Long.toString(mLocalId) };
                 }
                 String[] projection = { COL_PUBLIC_KEY };
-                String selection = null;
-                String[] selectionArgs = null;
                 String sortOrder = null;
                 Cursor c = mContext.getContentResolver().query(
                         uri, projection, selection, selectionArgs, sortOrder);
