@@ -67,6 +67,11 @@ public abstract class DbUser implements User {
             return mId;
         }
 
+        @Override
+        public String toString() {
+            return "[id: " + mId + ", name: " + mName + ", local: " + mLocalId + "]";
+        }
+
         /**
          * Returns the local database id for this user.
          */
@@ -156,7 +161,7 @@ public abstract class DbUser implements User {
                     Cursor c = mContext.getContentResolver().query(
                             uri, projection, selection, selectionArgs, sortOrder);
                     try {
-                        if (!c.moveToFirst()) {
+                        if (c == null || !c.moveToFirst()) {
                             return null;
                         }
                         return c.getString(c.getColumnIndexOrThrow(COL_PRIVATE_KEY));
@@ -165,6 +170,8 @@ public abstract class DbUser implements User {
                             c.close();
                         }
                     }
+                } else {
+                    Log.d("DbUser", "Unknown private key for " + mLocalId);
                 }
             }
 
