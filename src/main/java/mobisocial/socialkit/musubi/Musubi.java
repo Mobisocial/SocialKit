@@ -37,13 +37,13 @@ import android.util.Log;
  */
 public class Musubi {
     public static final String TAG = "SocialKit-DB";
+    static boolean DBG = true;
+
     public static final String AUTHORITY = "org.mobisocial.db";
     private static final String SUPER_APP_ID = "edu.stanford.mobisocial.dungbeetle";
-
     public static final String EXTRA_FEED_URI = "mobisocial.db.FEED";
     public static final String EXTRA_OBJ_HASH = "mobisocial.db.OBJ_HASH";
-
-    static boolean DBG = true;
+    
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
     private DbFeed mFeed;
@@ -53,7 +53,7 @@ public class Musubi {
         final Intent intent = new Intent(Intent.ACTION_MAIN, null);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
         intent.setPackage("edu.stanford.mobisocial.dungbeetle");
-        return context.getPackageManager().queryIntentActivities( intent, 0).size() > 0;
+        return context.getPackageManager().queryIntentActivities(intent, 0).size() > 0;
     }
 
     public static boolean isMusubiIntent(Intent intent) {
@@ -63,7 +63,7 @@ public class Musubi {
     private Musubi(Context context) {
         mContext = context;
         if (context instanceof Activity) {
-            setFeedFromIntent(((Activity)context).getIntent());
+            setFeedFromIntent(((Activity) context).getIntent());
         }
         mContentProviderThread = new ContentProviderThread();
         mContentProviderThread.start();
@@ -138,31 +138,41 @@ public class Musubi {
 
             try {
                 localId = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_ID));
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+            }
             try {
                 appId = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_APP_ID));
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+            }
             try {
                 type = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_TYPE));
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+            }
             try {
-                json = new JSONObject(cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_JSON)));
-            } catch (IllegalArgumentException e) {}
+                json = new JSONObject(
+                        cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_JSON)));
+            } catch (IllegalArgumentException e) {
+            }
             try {
                 senderId = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_CONTACT_ID));
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+            }
             try {
                 hash = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_HASH));
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+            }
             try {
                 name = cursor.getString(cursor.getColumnIndexOrThrow(DbObj.COL_FEED_NAME));
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+            }
             try {
                 seqNum = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_SEQUENCE_ID));
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+            }
             try {
                 intKey = cursor.getInt(cursor.getColumnIndexOrThrow(DbObj.COL_KEY_INT));
-            } catch (IllegalArgumentException e) {}
+            } catch (IllegalArgumentException e) {
+            }
 
             final Uri feedUri = DbFeed.uriForName(name);
 
@@ -174,8 +184,8 @@ public class Musubi {
             } else {
                 raw = cursor.getBlob(cursor.getColumnIndexOrThrow(DbObj.COL_RAW));
             }
-            return new DbObj(this, appId, type, json, localId, hash, raw, senderId,
-                    seqNum, feedUri, intKey);
+            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum,
+                    feedUri, intKey);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -183,11 +193,15 @@ public class Musubi {
     }
 
     public DbObj objForId(long localId) {
-        Cursor cursor = mContext.getContentResolver().query(DbObj.OBJ_URI,
-                new String[] { DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
-                DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_HASH,
-                DbObj.COL_FEED_NAME, DbObj.COL_KEY_INT }, DbObj.COL_ID + " = ?",
-                new String[] { String.valueOf(localId) }, null);
+        Cursor cursor = mContext.getContentResolver().query(
+                DbObj.OBJ_URI,
+                new String[] {
+                        DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
+                        DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_HASH,
+                        DbObj.COL_FEED_NAME, DbObj.COL_KEY_INT
+                }, DbObj.COL_ID + " = ?", new String[] {
+                    String.valueOf(localId)
+                }, null);
         try {
             if (cursor == null || !cursor.moveToFirst()) {
                 Log.w(TAG, "Obj " + localId + " not found.");
@@ -206,7 +220,8 @@ public class Musubi {
             final Uri feedUri = DbFeed.uriForName(name);
             final Integer intKey = cursor.getInt(q++);
 
-            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum, feedUri, intKey);
+            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum,
+                    feedUri, intKey);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -217,12 +232,30 @@ public class Musubi {
         }
     }
 
+    public DbObj objForUri(Uri objUri) {
+        String objRef = objUri.getLastPathSegment();
+        int sep = objRef.lastIndexOf(':');
+        if (sep == -1) {
+            return null;
+        }
+        try {
+            Long hash = Long.parseLong(objRef.substring(sep + 1));
+            return objForHash(hash); // TODO: use feed information for safer access
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     public DbObj objForHash(long hash) {
-        Cursor cursor = mContext.getContentResolver().query(DbObj.OBJ_URI,
-                new String[] { DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
-                DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_ID,
-                DbObj.COL_FEED_NAME, DbObj.COL_KEY_INT}, DbObj.COL_HASH + " = ?",
-                new String[] { String.valueOf(hash) }, null);
+        Cursor cursor = mContext.getContentResolver().query(
+                DbObj.OBJ_URI,
+                new String[] {
+                        DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
+                        DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_ID,
+                        DbObj.COL_FEED_NAME, DbObj.COL_KEY_INT
+                }, DbObj.COL_HASH + " = ?", new String[] {
+                    String.valueOf(hash)
+                }, null);
         try {
             if (!cursor.moveToFirst()) {
                 Log.w(TAG, "Obj " + hash + " not found.");
@@ -241,8 +274,8 @@ public class Musubi {
             final Uri feedUri = DbFeed.uriForName(name);
             final Integer intKey = cursor.getInt(q++);
 
-            return new DbObj(this, appId, type, json, localId, hash, raw, senderId,
-                    seqNum, feedUri, intKey);
+            return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum,
+                    feedUri, intKey);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -260,14 +293,18 @@ public class Musubi {
         if (localUser.getId().equals(personId)) {
             return localUser;
         }
-        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
-                feedUri.getLastPathSegment());
-        String[] projection = { DbUser.COL_ID, DbUser.COL_NAME };
+        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/"
+                + feedUri.getLastPathSegment());
+        String[] projection = {
+                DbUser.COL_ID, DbUser.COL_NAME
+        };
         String selection = DbUser.COL_PERSON_ID + " = ?";
-        String[] selectionArgs = new String[] { personId };
+        String[] selectionArgs = new String[] {
+            personId
+        };
         String sortOrder = null;
-        Cursor c = mContext.getContentResolver().query(
-                uri, projection, selection, selectionArgs, sortOrder);
+        Cursor c = mContext.getContentResolver().query(uri, projection, selection, selectionArgs,
+                sortOrder);
         try {
             if (!c.moveToFirst()) {
                 Log.w(Musubi.TAG, "No user found for " + personId, new Throwable());
@@ -288,14 +325,18 @@ public class Musubi {
         if (localId == DbUser.LOCAL_USER_ID) {
             return userForLocalDevice(feedUri);
         }
-        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
-                feedUri.getLastPathSegment());
-        String[] projection = { DbUser.COL_PERSON_ID, DbUser.COL_NAME };
+        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/"
+                + feedUri.getLastPathSegment());
+        String[] projection = {
+                DbUser.COL_PERSON_ID, DbUser.COL_NAME
+        };
         String selection = DbUser.COL_ID + " = ?";
-        String[] selectionArgs = new String[] { Long.toString(localId) };
+        String[] selectionArgs = new String[] {
+            Long.toString(localId)
+        };
         String sortOrder = null;
-        Cursor c = mContext.getContentResolver().query(
-                uri, projection, selection, selectionArgs, sortOrder);
+        Cursor c = mContext.getContentResolver().query(uri, projection, selection, selectionArgs,
+                sortOrder);
         if (c == null) {
             Log.w(Musubi.TAG, "Null cursor for user query " + localId);
             return null;
@@ -315,14 +356,16 @@ public class Musubi {
     }
 
     public DbUser userForLocalDevice(Uri feedUri) {
-        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/" +
-                feedUri.getLastPathSegment());
-        String[] projection = { DbUser.COL_ID, DbUser.COL_NAME, DbUser.COL_PUBLIC_KEY };
+        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/"
+                + feedUri.getLastPathSegment());
+        String[] projection = {
+                DbUser.COL_ID, DbUser.COL_NAME, DbUser.COL_PUBLIC_KEY
+        };
         String selection = null;
         String[] selectionArgs = null;
         String sortOrder = null;
-        Cursor c = mContext.getContentResolver().query(
-                uri, projection, selection, selectionArgs, sortOrder);
+        Cursor c = mContext.getContentResolver().query(uri, projection, selection, selectionArgs,
+                sortOrder);
         try {
             if (c == null || !c.moveToFirst()) {
                 Log.w(TAG, "no local user", new Throwable());
@@ -330,7 +373,7 @@ public class Musubi {
             }
             long localId = c.getLong(c.getColumnIndexOrThrow(DbUser.COL_ID));
             String name = c.getString(c.getColumnIndexOrThrow(DbUser.COL_NAME));
-            String keyStr  = c.getString(c.getColumnIndexOrThrow(DbUser.COL_PUBLIC_KEY));
+            String keyStr = c.getString(c.getColumnIndexOrThrow(DbUser.COL_PUBLIC_KEY));
             RSAPublicKey key = RSACrypto.publicKeyFromString(keyStr);
             String personId = RSACrypto.makePersonIdForPublicKey(key);
             return DbUser.forFeedDetails(mContext, name, localId, personId, feedUri);
@@ -342,18 +385,14 @@ public class Musubi {
     }
 
     public Uri getAppDataUri() {
-        return new Uri.Builder()
-            .scheme("content")
-            .authority(AUTHORITY)
-            .appendPath("app")
-            .appendPath(mContext.getPackageName()).build();
+        return new Uri.Builder().scheme("content").authority(AUTHORITY).appendPath("app")
+                .appendPath(mContext.getPackageName()).build();
     }
 
     public Cursor queryAppData(String[] projection, String selection, String[] selectionArgs,
             String order) {
         Uri uri = getAppDataUri();
-        return mContext.getContentResolver().query(uri, null, selection,
-                selectionArgs, order);
+        return mContext.getContentResolver().query(uri, null, selection, selectionArgs, order);
     }
 
     class ContentProviderThread extends Thread {
@@ -364,7 +403,7 @@ public class Musubi {
 
             mHandler = new Handler() {
                 public void handleMessage(Message msg) {
-                    Insertion i = (Insertion)msg.obj;
+                    Insertion i = (Insertion) msg.obj;
                     mContext.getContentResolver().insert(i.uri, i.cv);
                 }
             };
@@ -381,6 +420,7 @@ public class Musubi {
 
         private class Insertion {
             Uri uri;
+
             ContentValues cv;
 
             public Insertion(Uri uri, ContentValues cv) {

@@ -155,8 +155,9 @@ public class DbObj implements SignedObj {
         return mSequenceNumber;
     }
 
-    public static Uri uriForObj(long objId) {
-        return OBJ_URI.buildUpon().appendPath("" + objId).build();
+    public Uri getUri() {
+        // TODO: no more long in uri! use proper hex encoding
+        return OBJ_URI.buildUpon().appendPath(getFeedName() + ":" + mHash).build();
     }
 
     @Override
