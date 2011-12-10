@@ -38,6 +38,7 @@ public abstract class DbUser implements User {
     static final long LOCAL_USER_ID = -666;
 
     public abstract long getLocalId();
+    public abstract Bitmap getPicture();
 
     public static DbUser forFeedDetails(Context context, String name, long localId, String personId,
             Uri feedUri) {
@@ -84,6 +85,7 @@ public abstract class DbUser implements User {
             return mName;
         }
 
+        @Override
         public Bitmap getPicture() {
             Uri uri;
 

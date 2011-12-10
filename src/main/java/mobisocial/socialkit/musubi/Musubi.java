@@ -38,6 +38,7 @@ import android.util.Log;
 public class Musubi {
     public static final String TAG = "SocialKit-DB";
     public static final String AUTHORITY = "org.mobisocial.db";
+    private static final String SUPER_APP_ID = "edu.stanford.mobisocial.dungbeetle";
 
     public static final String EXTRA_FEED_URI = "mobisocial.db.FEED";
     public static final String EXTRA_OBJ_HASH = "mobisocial.db.OBJ_HASH";
@@ -84,6 +85,11 @@ public class Musubi {
 
     Context getContext() {
         return mContext;
+    }
+
+    public static Intent getMarketIntent() {
+        Uri marketUri = Uri.parse("market://details?id=" + SUPER_APP_ID);
+        return new Intent(Intent.ACTION_VIEW, marketUri);
     }
 
     public DbFeed getFeed(Uri feedUri) {

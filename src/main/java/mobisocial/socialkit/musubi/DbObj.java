@@ -24,6 +24,7 @@ import mobisocial.socialkit.SignedObj;
 import org.json.JSONObject;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.net.Uri;
 
 /**
@@ -63,10 +64,11 @@ public class DbObj implements SignedObj {
     public static final String COL_DELETED = "deleted";
     public static final String COL_RAW = "raw";
     public static final String COL_KEY_INT = "key_int";
+    public static final String COL_LAST_MODIFIED_TIMESTAMP = "last_modified_timestamp";
 
     // Lazy loaded.
     private SoftReference<DbUser> mSenderReference;
-    private SoftReference<DbFeed> mFeedReference;
+    private SoftReference<DbFeed> mContainingFeed;
 
     DbObj(Musubi musubi, String appId, String type, JSONObject json,
             long localId, long hash, byte[] raw, long senderId, long seqNum,
@@ -104,12 +106,12 @@ public class DbObj implements SignedObj {
      */
     public DbFeed getContainingFeed() {
         DbFeed f = null;
-        if (mFeedReference != null) {
-            f = mFeedReference.get();
+        if (mContainingFeed != null) {
+            f = mContainingFeed.get();
         }
         if (f == null) {
             f = mMusubi.getFeed(mFeedUri);
-            mFeedReference = new SoftReference<DbFeed>(f);
+            mContainingFeed = new SoftReference<DbFeed>(f);
         }
         return f;
     }
