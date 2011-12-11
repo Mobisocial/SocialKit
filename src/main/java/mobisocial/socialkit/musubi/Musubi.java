@@ -384,15 +384,10 @@ public class Musubi {
         }
     }
 
-    public Uri getAppDataUri() {
-        return new Uri.Builder().scheme("content").authority(AUTHORITY).appendPath("app")
-                .appendPath(mContext.getPackageName()).build();
-    }
-
-    public Cursor queryAppData(String[] projection, String selection, String[] selectionArgs,
-            String order) {
-        Uri uri = getAppDataUri();
-        return mContext.getContentResolver().query(uri, null, selection, selectionArgs, order);
+    public DbFeed getAppFeed() {
+        Uri feedUri = new Uri.Builder().scheme("content").authority(AUTHORITY)
+                .appendEncodedPath("feeds/app^" + mContext.getPackageName()).build();
+        return new DbFeed(this, feedUri);
     }
 
     class ContentProviderThread extends Thread {
