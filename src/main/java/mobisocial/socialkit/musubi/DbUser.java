@@ -26,7 +26,6 @@ import android.util.Log;
 
 /**
  * A User object with details backed by a database cursor.
- * {@hide}
  */
 public abstract class DbUser implements User {
     static final String COL_ID = "_id";

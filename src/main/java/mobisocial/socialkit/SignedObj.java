@@ -19,7 +19,7 @@ package mobisocial.socialkit;
 
 /**
  * An Obj that has been encoded and signed by a {@link User} for sharing with
- * a {@link Feed}.
+ * a {@see DbFeed}.
  *
  */
 public interface SignedObj extends Obj {

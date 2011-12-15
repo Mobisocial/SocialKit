@@ -20,7 +20,7 @@ import mobisocial.socialkit.User;
 
 public abstract class Multiplayer {
     /**
-     * Launch an application with a connection to a {@link Feed}.
+     * Launch an application with a connection to a {@link DbFeed}.
      * {@see Intent#CATEGORY_LAUNCHER}
      */
     public static final String ACTION_CONNECTED = "mobisocial.intent.action.CONNECTED";

@@ -114,7 +114,7 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
     protected abstract JSONObject getInitialState();
 
     /**
-     * Returns a view suitable for display in a data feed.
+     * Returns a view suitable for display in a feed.
      */
     protected abstract FeedRenderable getFeedView(JSONObject state);
 
