@@ -306,7 +306,7 @@ public class Musubi {
         Cursor c = mContext.getContentResolver().query(uri, projection, selection, selectionArgs,
                 sortOrder);
         try {
-            if (!c.moveToFirst()) {
+            if (c == null || !c.moveToFirst()) {
                 Log.w(Musubi.TAG, "No user found for " + personId, new Throwable());
                 Log.w(Musubi.TAG, "Local user is " + localUser.getId());
                 return null;
@@ -368,7 +368,7 @@ public class Musubi {
                 sortOrder);
         try {
             if (c == null || !c.moveToFirst()) {
-                Log.w(TAG, "no local user", new Throwable());
+                Log.w(TAG, "no local user for feed " + feedUri, new Throwable());
                 return null;
             }
             long localId = c.getLong(c.getColumnIndexOrThrow(DbUser.COL_ID));

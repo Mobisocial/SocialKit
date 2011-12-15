@@ -170,6 +170,10 @@ public class DbFeed {
         return mMusubi.userForLocalDevice(mUri);
     }
 
+    public DbUser userForGlobalId(String personId) {
+        return mMusubi.userForGlobalId(mUri, personId);
+    }
+
     /**
      * List of remote participants available to this feed.
      */

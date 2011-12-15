@@ -16,6 +16,8 @@
 
 package mobisocial.socialkit.musubi.multiplayer;
 
+import mobisocial.socialkit.User;
+
 public abstract class Multiplayer {
     /**
      * Launch an application with a connection to a {@link Feed}.
@@ -42,4 +44,5 @@ public abstract class Multiplayer {
     static final String TAG = "musubi";
 
     public abstract String[] getMembers();
+    public abstract User getLocalUser();
 }
