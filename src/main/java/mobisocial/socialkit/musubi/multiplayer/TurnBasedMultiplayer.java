@@ -49,6 +49,9 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
     private Integer mLastTurn;
 
     public TurnBasedMultiplayer(DbObj objContext) {
+        if (objContext == null) {
+            throw new NullPointerException("ObjContext is null");
+        }
         mObjContext = objContext;
         mDbFeed = mObjContext.getSubfeed();
         String[] projection = null;

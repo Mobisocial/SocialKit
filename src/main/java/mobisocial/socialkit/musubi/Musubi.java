@@ -63,7 +63,7 @@ public class Musubi {
     private Musubi(Context context) {
         mContext = context;
         if (context instanceof Activity) {
-            setFeedFromIntent(((Activity) context).getIntent());
+            setDataFromIntent(((Activity) context).getIntent());
         }
         mContentProviderThread = new ContentProviderThread();
         mContentProviderThread.start();
@@ -75,7 +75,7 @@ public class Musubi {
 
     public static Musubi getInstance(Activity activity, Intent intent) {
         Musubi m = new Musubi(activity);
-        m.setFeedFromIntent(intent);
+        m.setDataFromIntent(intent);
         return m;
     }
 
@@ -96,7 +96,7 @@ public class Musubi {
         return new DbFeed(this, feedUri);
     }
 
-    public void setFeedFromIntent(Intent intent) {
+    public void setDataFromIntent(Intent intent) {
         if (intent.hasExtra(EXTRA_FEED_URI)) {
             mFeed = new DbFeed(this, (Uri) intent.getParcelableExtra(EXTRA_FEED_URI));
             if (mFeed.getUri().getLastPathSegment().contains(":")) {
