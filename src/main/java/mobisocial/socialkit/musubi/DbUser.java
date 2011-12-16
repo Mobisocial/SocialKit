@@ -51,6 +51,7 @@ public abstract class DbUser implements User {
         private final Uri mFeedUri;
         private final boolean mIsLocalUser;
         private final Context mContext;
+        private Bitmap mPicture;
 
         InFeedDbUser(Context context, String name, long localId, String personId,
                 Uri feedUri) {
@@ -86,8 +87,11 @@ public abstract class DbUser implements User {
 
         @Override
         public Bitmap getPicture() {
-            Uri uri;
+            if (mPicture != null) {
+                return mPicture;
+            }
 
+            Uri uri;
             String selection = null;
             String[] selectionArgs = null;
             if (!mIsLocalUser) {
@@ -113,7 +117,8 @@ public abstract class DbUser implements User {
                     Log.w(Musubi.TAG, "No picture found for " + mId);
                     return null;
                 }
-                return BitmapFactory.decodeByteArray(pic, 0, pic.length);
+                mPicture = BitmapFactory.decodeByteArray(pic, 0, pic.length);
+                return mPicture;
             } finally {
                 if (c != null) {
                     c.close();
