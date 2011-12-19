@@ -45,21 +45,22 @@ public abstract class DbUser implements User {
     }
 
     static class InFeedDbUser extends DbUser {
+        private static Context sLatestContext;
         private final long mLocalId;
         private final String mId;
         private final String mName;
         private final Uri mFeedUri;
         private final boolean mIsLocalUser;
-        private final Context mContext;
         private Bitmap mPicture;
 
         InFeedDbUser(Context context, String name, long localId, String personId,
                 Uri feedUri) {
+            sLatestContext = context.getApplicationContext();
             mIsLocalUser = (localId == LOCAL_USER_ID);
             mName = name;
             mId = personId;
             mFeedUri = feedUri;
-            mContext = context;
+            sLatestContext = context;
             mLocalId = localId;
         }
 
@@ -105,7 +106,7 @@ public abstract class DbUser implements User {
             }
             String[] projection = { COL_PICTURE };
             String sortOrder = null;
-            Cursor c = mContext.getContentResolver().query(
+            Cursor c = sLatestContext.getContentResolver().query(
                     uri, projection, selection, selectionArgs, sortOrder);
             try {
                 if (c == null || !c.moveToFirst()) {
@@ -143,7 +144,7 @@ public abstract class DbUser implements User {
                 }
                 String[] projection = { COL_PUBLIC_KEY };
                 String sortOrder = null;
-                Cursor c = mContext.getContentResolver().query(
+                Cursor c = sLatestContext.getContentResolver().query(
                         uri, projection, selection, selectionArgs, sortOrder);
                 try {
                     if (!c.moveToFirst()) {
@@ -164,7 +165,7 @@ public abstract class DbUser implements User {
                     String selection = null;
                     String[] selectionArgs = null;
                     String sortOrder = null;
-                    Cursor c = mContext.getContentResolver().query(
+                    Cursor c = sLatestContext.getContentResolver().query(
                             uri, projection, selection, selectionArgs, sortOrder);
                     try {
                         if (c == null || !c.moveToFirst()) {

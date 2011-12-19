@@ -17,6 +17,7 @@
 package mobisocial.socialkit.musubi;
 
 import java.security.interfaces.RSAPublicKey;
+import java.util.LinkedHashMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,6 +26,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
@@ -49,6 +51,10 @@ public class Musubi {
     private DbFeed mFeed;
     private DbObj mObj;
 
+    private static final Uri CONTACTS_URI = Uri.parse("content://" + AUTHORITY + "/contacts");
+    private static final LinkedHashMap<Long, DbUser> sUserCache = new UserCache();
+    private final ContentObserver mContactUpdateObserver;
+
     public static boolean isMusubiInstalled(Context context) {
         final Intent intent = new Intent(Intent.ACTION_MAIN, null);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -61,12 +67,20 @@ public class Musubi {
     }
 
     private Musubi(Context context) {
-        mContext = context;
+        mContext = context.getApplicationContext();
         if (context instanceof Activity) {
             setDataFromIntent(((Activity) context).getIntent());
         }
         mContentProviderThread = new ContentProviderThread();
         mContentProviderThread.start();
+        mContactUpdateObserver = new ContentObserver(mContentProviderThread.mHandler) {
+            @Override
+            public void onChange(boolean selfChange) {
+                sUserCache.clear();
+            }
+        };
+        mContext.getContentResolver().registerContentObserver(CONTACTS_URI, true,
+                mContactUpdateObserver);
     }
 
     public static Musubi getInstance(Context context) {
@@ -295,9 +309,7 @@ public class Musubi {
         }
         Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/"
                 + feedUri.getLastPathSegment());
-        String[] projection = {
-                DbUser.COL_ID, DbUser.COL_NAME
-        };
+        String[] projection = { DbUser.COL_ID, DbUser.COL_NAME };
         String selection = DbUser.COL_PERSON_ID + " = ?";
         String[] selectionArgs = new String[] {
             personId
@@ -322,8 +334,15 @@ public class Musubi {
     }
 
     public DbUser userForLocalId(Uri feedUri, long localId) {
+        DbUser cachedUser = sUserCache.get(localId);
+        if (cachedUser != null) {
+            return cachedUser;
+        }
+
         if (localId == DbUser.LOCAL_USER_ID) {
-            return userForLocalDevice(feedUri);
+            DbUser user = userForLocalDevice(feedUri);
+            sUserCache.put(localId, user);
+            return user;
         }
         Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/"
                 + feedUri.getLastPathSegment());
@@ -331,9 +350,7 @@ public class Musubi {
                 DbUser.COL_PERSON_ID, DbUser.COL_NAME
         };
         String selection = DbUser.COL_ID + " = ?";
-        String[] selectionArgs = new String[] {
-            Long.toString(localId)
-        };
+        String[] selectionArgs = new String[] { Long.toString(localId) };
         String sortOrder = null;
         Cursor c = mContext.getContentResolver().query(uri, projection, selection, selectionArgs,
                 sortOrder);
@@ -349,7 +366,9 @@ public class Musubi {
 
             String name = c.getString(c.getColumnIndexOrThrow(DbUser.COL_NAME));
             String globalId = c.getString(c.getColumnIndexOrThrow(DbUser.COL_PERSON_ID));
-            return DbUser.forFeedDetails(mContext, name, localId, globalId, feedUri);
+            DbUser user = DbUser.forFeedDetails(mContext, name, localId, globalId, feedUri);
+            sUserCache.put(localId, user);
+            return user;
         } finally {
             c.close();
         }
@@ -422,6 +441,18 @@ public class Musubi {
                 this.uri = uri;
                 this.cv = cv;
             }
+        }
+    }
+
+    private static class UserCache extends LinkedHashMap<Long, DbUser> {
+        private static final int MAX_ENTRIES = 10;
+        public UserCache() {
+            super(10, 0.75f, true);
+        }
+
+        @Override
+        protected boolean removeEldestEntry(java.util.Map.Entry<Long, DbUser> eldest) {
+            return size() > MAX_ENTRIES;
         }
     }
 }

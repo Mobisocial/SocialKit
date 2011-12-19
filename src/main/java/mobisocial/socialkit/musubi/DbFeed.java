@@ -182,10 +182,12 @@ public class DbFeed {
                 "/members/" + mFeedName);
         Cursor cursor;
         try {
+            String[] projection = new String[] {DbUser.COL_NAME, DbUser.COL_NAME,
+                    DbUser.COL_PERSON_ID};
             String selection = null;
             String[] selectionArgs = null;
             String order = null;
-            cursor = mMusubi.getContext().getContentResolver().query(feedMembersUri, null,
+            cursor = mMusubi.getContext().getContentResolver().query(feedMembersUri, projection,
                     selection, selectionArgs, order);
         } catch (Exception e) {
             Log.e(TAG, "Error getting membership", e);
