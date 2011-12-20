@@ -54,7 +54,6 @@ public class DbFeed {
     private String[] mProjection = null;
     private String mSelection = null;
     private String[] mSelectionArgs = null;
-    // TODO: consistent ordering
     private String mSortOrder = DbObj.COL_ID + " desc";
 
     DbFeed(Musubi musubi, Uri feedUri) {
@@ -102,6 +101,7 @@ public class DbFeed {
     }
 
     public DbObj getLatestObj() {
+        String sortOrder = DbObj.COL_ID + " desc"; // TODO: consistent ordering
         Cursor cursor = query(mProjection, mSelection, mSelectionArgs, sortOrder);
         if (cursor != null && cursor.moveToFirst()) {
             try {
