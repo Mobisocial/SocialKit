@@ -54,7 +54,8 @@ public class DbFeed {
     private String[] mProjection = null;
     private String mSelection = null;
     private String[] mSelectionArgs = null;
-    private String mSortOrder = null;
+    // TODO: consistent ordering
+    private String mSortOrder = DbObj.COL_ID + " desc";
 
     DbFeed(Musubi musubi, Uri feedUri) {
         mMusubi = musubi;
@@ -87,8 +88,12 @@ public class DbFeed {
             mActor = new DbJunctionActor();
         }
 
-        Uri uri = Uri.parse("junction://sb.openjunction.org/dbf-" + mUri.getLastPathSegment());
         try {
+            String uid = mUri.getLastPathSegment();
+            uid = uid.replace("^", "_").replace(":", "_");
+            Uri uri = new Uri.Builder().scheme("junction")
+                    .authority("sb.openjunction.org")
+                    .appendPath("dbf-" + uid).build();
             mJunction = AndroidJunctionMaker.bind(uri, mActor);
         } catch (JunctionException e) {
             Log.e(TAG, "Error connecting to junction");
@@ -97,7 +102,7 @@ public class DbFeed {
     }
 
     public DbObj getLatestObj() {
-        Cursor cursor = query();
+        Cursor cursor = query(mProjection, mSelection, mSelectionArgs, sortOrder);
         if (cursor != null && cursor.moveToFirst()) {
             try {
                 return mMusubi.objForCursor(cursor);

@@ -1,32 +1,37 @@
 package mobisocial.socialkit.obj;
 
 import mobisocial.socialkit.musubi.multiplayer.FeedRenderable;
-import mobisocial.socialkit.musubi.multiplayer.Multiplayer;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-public abstract class AppStateObj extends MemObj {
+public class AppStateObj extends MemObj {
     public static final String TYPE = "appstate";
-    public static final String FIELD_INTENT_ACTION = "intentAction";
+    private final FeedRenderable mAppRenderable;
+    private final JSONObject mAppData;
 
-    public abstract FeedRenderable getRenderable();
-    public abstract JSONObject getData();
+    public FeedRenderable getAppRenderable() {
+        return mAppRenderable;
+    }
+    public JSONObject getAppData() {
+        return mAppData;
+    }
 
-    public AppStateObj() {
+    public AppStateObj(JSONObject data, FeedRenderable renderable) {
         super(TYPE);
+        mAppRenderable = renderable;
+        mAppData = data;
     }
 
     @Override
     public JSONObject getJson() {
-        JSONObject data = getData();
+        FeedRenderable renderable = getAppRenderable();
+        if (renderable == null) {
+            return getAppData();
+        }
+        JSONObject data = getAppData();
         if (data == null) {
             data = new JSONObject();
         }
-        try {
-            data.put(FIELD_INTENT_ACTION, Multiplayer.ACTION_CONNECTED);
-        } catch (JSONException e) {}
-        FeedRenderable renderable = getRenderable();
         return renderable.withJson(data) ;
     }
 }
