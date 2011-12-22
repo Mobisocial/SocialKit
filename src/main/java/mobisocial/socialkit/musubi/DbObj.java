@@ -24,7 +24,6 @@ import mobisocial.socialkit.SignedObj;
 import org.json.JSONObject;
 
 import android.content.ContentValues;
-import android.database.Cursor;
 import android.net.Uri;
 
 /**
@@ -45,6 +44,7 @@ public class DbObj implements SignedObj {
     private final long mSequenceNumber;
     private final Uri mFeedUri;
     private final Integer mIntKey;
+    private final long mTimestamp;
 
     public static final Uri OBJ_URI = Uri.parse("content://" + Musubi.AUTHORITY + "/obj");
     public static final String TABLE = "objects";
@@ -72,7 +72,7 @@ public class DbObj implements SignedObj {
 
     DbObj(Musubi musubi, String appId, String type, JSONObject json,
             long localId, long hash, byte[] raw, long senderId, long seqNum,
-            Uri feedUri, Integer intKey) {
+            Uri feedUri, Integer intKey, long timestamp) {
         mMusubi = musubi;
         mAppId = appId;
         mType = type;
@@ -84,6 +84,7 @@ public class DbObj implements SignedObj {
         mFeedUri = feedUri;
         mSequenceNumber = seqNum;
         mIntKey = intKey;
+        mTimestamp = timestamp;
     }
 
     @Override
@@ -173,6 +174,10 @@ public class DbObj implements SignedObj {
     @Override
     public Integer getInt() {
         return mIntKey;
+    }
+
+    public long getTimestamp() {
+        return mTimestamp;
     }
 
     public static ContentValues toContentValues(Obj obj) {

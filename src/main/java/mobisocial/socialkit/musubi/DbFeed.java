@@ -185,36 +185,38 @@ public class DbFeed {
     public Set<DbUser> getRemoteUsers() {
         Uri feedMembersUri = Uri.parse("content://" + Musubi.AUTHORITY +
                 "/members/" + mFeedName);
-        Cursor cursor;
+        Cursor cursor = null;
         try {
-            String[] projection = new String[] {DbUser.COL_NAME, DbUser.COL_NAME,
-                    DbUser.COL_PERSON_ID};
+            String[] projection = new String[] {
+                    DbUser.COL_ID, DbUser.COL_NAME, DbUser.COL_PERSON_ID };
             String selection = null;
             String[] selectionArgs = null;
             String order = null;
             cursor = mMusubi.getContext().getContentResolver().query(feedMembersUri, projection,
                     selection, selectionArgs, order);
-        } catch (Exception e) {
-            Log.e(TAG, "Error getting membership", e);
-            return null;
-        }
-        HashSet<DbUser> users = new HashSet<DbUser>();
-        if (!cursor.moveToFirst()) {
-            return users; // TODO: doesn't include local user.
-        }
 
-        int nameIndex = cursor.getColumnIndex(DbUser.COL_NAME);
-        int globalIdIndex = cursor.getColumnIndex(DbUser.COL_PERSON_ID);
-        int localIdIndex = cursor.getColumnIndex(DbUser.COL_ID);
-        while (!cursor.isAfterLast()) {
-            String name = cursor.getString(nameIndex);
-            String globalId = cursor.getString(globalIdIndex);
-            long localId = cursor.getLong(localIdIndex);
-            users.add(DbUser.forFeedDetails(mMusubi.getContext(), name,
-                    localId, globalId, mUri));
-            cursor.moveToNext();
+            HashSet<DbUser> users = new HashSet<DbUser>();
+            if (!cursor.moveToFirst()) {
+                return users; // TODO: doesn't include local user.
+            }
+    
+            int nameIndex = cursor.getColumnIndex(DbUser.COL_NAME);
+            int globalIdIndex = cursor.getColumnIndex(DbUser.COL_PERSON_ID);
+            int localIdIndex = cursor.getColumnIndex(DbUser.COL_ID);
+            while (!cursor.isAfterLast()) {
+                String name = cursor.getString(nameIndex);
+                String globalId = cursor.getString(globalIdIndex);
+                long localId = cursor.getLong(localIdIndex);
+                users.add(DbUser.forFeedDetails(mMusubi.getContext(), name,
+                        localId, globalId, mUri));
+                cursor.moveToNext();
+            }
+            return users;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
         }
-        return users;
     }
 
     private void doContentChanged() {

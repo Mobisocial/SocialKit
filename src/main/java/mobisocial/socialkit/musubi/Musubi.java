@@ -149,6 +149,7 @@ public class Musubi {
             String name = null;
             long seqNum = -1;
             Integer intKey = null;
+            long timestamp = -1;
 
             try {
                 localId = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_ID));
@@ -187,6 +188,10 @@ public class Musubi {
                 intKey = cursor.getInt(cursor.getColumnIndexOrThrow(DbObj.COL_KEY_INT));
             } catch (IllegalArgumentException e) {
             }
+            try {
+                timestamp = cursor.getInt(cursor.getColumnIndexOrThrow(DbObj.COL_TIMESTAMP));
+            } catch (IllegalArgumentException e) {
+            }
 
             final Uri feedUri = DbFeed.uriForName(name);
 
@@ -199,7 +204,7 @@ public class Musubi {
                 raw = cursor.getBlob(cursor.getColumnIndexOrThrow(DbObj.COL_RAW));
             }
             return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum,
-                    feedUri, intKey);
+                    feedUri, intKey, timestamp);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -212,7 +217,7 @@ public class Musubi {
                 new String[] {
                         DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
                         DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_HASH,
-                        DbObj.COL_FEED_NAME, DbObj.COL_KEY_INT
+                        DbObj.COL_FEED_NAME, DbObj.COL_KEY_INT, DbObj.COL_TIMESTAMP
                 }, DbObj.COL_ID + " = ?", new String[] {
                     String.valueOf(localId)
                 }, null);
@@ -233,9 +238,10 @@ public class Musubi {
             final String name = cursor.getString(q++);
             final Uri feedUri = DbFeed.uriForName(name);
             final Integer intKey = cursor.getInt(q++);
+            final long timestamp = cursor.getLong(q++);
 
             return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum,
-                    feedUri, intKey);
+                    feedUri, intKey, timestamp);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -266,7 +272,7 @@ public class Musubi {
                 new String[] {
                         DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_JSON, DbObj.COL_RAW,
                         DbObj.COL_CONTACT_ID, DbObj.COL_SEQUENCE_ID, DbObj.COL_ID,
-                        DbObj.COL_FEED_NAME, DbObj.COL_KEY_INT
+                        DbObj.COL_FEED_NAME, DbObj.COL_KEY_INT, DbObj.COL_TIMESTAMP
                 }, DbObj.COL_HASH + " = ?", new String[] {
                     String.valueOf(hash)
                 }, null);
@@ -287,9 +293,10 @@ public class Musubi {
             final String name = cursor.getString(q++);
             final Uri feedUri = DbFeed.uriForName(name);
             final Integer intKey = cursor.getInt(q++);
+            final long timestamp = cursor.getLong(q++);
 
             return new DbObj(this, appId, type, json, localId, hash, raw, senderId, seqNum,
-                    feedUri, intKey);
+                    feedUri, intKey, timestamp);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -344,8 +351,15 @@ public class Musubi {
             sUserCache.put(localId, user);
             return user;
         }
+
+        String feedName;
+        if (feedUri != null) {
+            feedName = feedUri.getLastPathSegment();
+        } else {
+            feedName = "friend";
+        }
         Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/"
-                + feedUri.getLastPathSegment());
+                + feedName);
         String[] projection = {
                 DbUser.COL_PERSON_ID, DbUser.COL_NAME
         };
