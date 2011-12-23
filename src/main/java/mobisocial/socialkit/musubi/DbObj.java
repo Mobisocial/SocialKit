@@ -194,4 +194,9 @@ public class DbObj implements SignedObj {
         }
         return values;
     }
+
+    @Override
+    public String toString() {
+        return getUri().toString() + ", " + getType() + ", " + getJson();
+    }
 }

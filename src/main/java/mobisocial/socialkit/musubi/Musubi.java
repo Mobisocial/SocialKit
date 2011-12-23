@@ -45,6 +45,7 @@ public class Musubi {
     private static final String SUPER_APP_ID = "edu.stanford.mobisocial.dungbeetle";
     public static final String EXTRA_FEED_URI = "mobisocial.db.FEED";
     public static final String EXTRA_OBJ_HASH = "mobisocial.db.OBJ_HASH";
+    public static final String EXTRA_OBJ_URI = "mobisocial.db.OBJ_URI";
     
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
