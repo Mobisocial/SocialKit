@@ -312,7 +312,7 @@ public class Musubi {
         // The local user is currently stored specially,
         // and only one local user is allowed.
         DbUser localUser = userForLocalDevice(feedUri);
-        if (localUser.getId().equals(personId)) {
+        if (localUser != null && localUser.getId().equals(personId)) {
             return localUser;
         }
         Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/"
@@ -389,6 +389,9 @@ public class Musubi {
         }
     }
 
+    /**
+     * Returns the DbUser that is currently logged in to this app.
+     */
     public DbUser userForLocalDevice(Uri feedUri) {
         Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/local_user/"
                 + feedUri.getLastPathSegment());

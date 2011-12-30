@@ -14,7 +14,7 @@ import mobisocial.socialkit.util.FastBase64;
 
 public class RSACrypto {
 
-    public static RSAPublicKey publicKeyFromString(String str){
+    public static RSAPublicKey publicKeyFromString(String str) {
         try{
             byte[] pubKeyBytes = FastBase64.decode(str);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
