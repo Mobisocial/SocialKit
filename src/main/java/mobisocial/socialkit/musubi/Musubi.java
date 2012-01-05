@@ -41,6 +41,9 @@ public class Musubi {
     public static final String TAG = "SocialKit-DB";
     static boolean DBG = true;
 
+    /**
+     * The name of the Musubi content provider.
+     */
     public static final String AUTHORITY = "org.mobisocial.db";
     private static final String SUPER_APP_ID = "edu.stanford.mobisocial.dungbeetle";
     public static final String EXTRA_FEED_URI = "mobisocial.db.FEED";

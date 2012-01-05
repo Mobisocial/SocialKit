@@ -87,6 +87,10 @@ public class DbObj implements SignedObj {
         mTimestamp = timestamp;
     }
 
+    public long getSenderId() {
+        return mSenderId;
+    }
+
     @Override
     public JSONObject getJson() {
         return mJson;
