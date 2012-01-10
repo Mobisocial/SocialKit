@@ -378,7 +378,8 @@ public class Musubi {
         }
         try {
             if (!c.moveToFirst()) {
-                Log.w(Musubi.TAG, "No user found for " + localId, new Throwable());
+                Log.w(Musubi.TAG, "No user found for " + localId + " in " + feedName,
+                        new Throwable());
                 return null;
             }
 

@@ -219,6 +219,13 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
         return takeTurn(next, state);
     }
 
+    /**
+     * Takes the last turn in this turn-based game.
+     */
+    public void takeFinalTurn(GameResult result, FeedRenderable display) {
+        postAppStateRenderable(result.getJson(), display);
+    }
+
     public JSONArray membersJsonArray() {
         JSONArray r = new JSONArray();
         for (String m : mMembers) {
