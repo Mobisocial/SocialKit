@@ -22,6 +22,11 @@ import java.util.LinkedHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import edu.stanford.junction.Junction;
+import edu.stanford.junction.JunctionException;
+import edu.stanford.junction.android.AndroidJunctionMaker;
+import edu.stanford.junction.api.activity.JunctionActor;
+
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
@@ -476,5 +481,19 @@ public class Musubi {
         protected boolean removeEldestEntry(java.util.Map.Entry<Long, DbUser> eldest) {
             return size() > MAX_ENTRIES;
         }
+    }
+
+    /**
+     * Connects to a real-time multi-way, globally ordered data stream
+     * associated with the given object.
+     */
+    public Junction joinJunctionForObj(JunctionActor actor, DbObj obj)
+            throws JunctionException {
+        String uid = obj.getUri().getLastPathSegment();
+        uid = uid.replace("^", "_").replace(":", "_");
+        Uri uri = new Uri.Builder().scheme("junction")
+                .authority("sb.openjunction.org")
+                .appendPath("dbf-" + uid).build();
+        return AndroidJunctionMaker.bind(uri, actor);
     }
 }
