@@ -5,7 +5,7 @@
 
   <groupId>org.mobisocial</groupId>
   <artifactId>SocialKit</artifactId>
-  <version>0.1.6-SNAPSHOT</version>
+  <version>0.1.7-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>SocialKit</name>
   <description>Social APIs for connected applications</description>
