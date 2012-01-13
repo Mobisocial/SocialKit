@@ -71,6 +71,17 @@ public class Musubi {
         return context.getPackageManager().queryIntentActivities(intent, 0).size() > 0;
     }
 
+    public static DbObj getContextObj(Context context, Intent intent) {
+        if (intent.hasExtra(EXTRA_OBJ_URI)) {
+            try {
+                Uri objUri = intent.getParcelableExtra(EXTRA_OBJ_URI);
+                return Musubi.getInstance(context).objForUri(objUri);
+            } catch (Exception e) {
+            }
+        }
+        return null;
+    }
+
     public static boolean isMusubiIntent(Intent intent) {
         return intent.hasExtra(EXTRA_FEED_URI);
     }

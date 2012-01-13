@@ -20,10 +20,17 @@ import mobisocial.socialkit.User;
 
 public abstract class Multiplayer {
     /**
-     * Launch an application with a connection to a {@link DbFeed}.
+     * Launch an application with a connection to a {@link DbFeed}, creating
+     * a new {@see DbObj} obj context.
      * {@see Intent#CATEGORY_LAUNCHER}
      */
     public static final String ACTION_CONNECTED = "mobisocial.intent.action.CONNECTED";
+
+    /**
+     * Launches an application with a reference to a {@link DbFeed}.
+     * <p>Introduced: SocialKit 0.1.7, Musubi r99.
+     */
+    public static final String ACTION_PUBLISH = "mobisocial.intent.action.PUBLISH";
 
     /**
      * Launch an application with a connection to a single remote user.
