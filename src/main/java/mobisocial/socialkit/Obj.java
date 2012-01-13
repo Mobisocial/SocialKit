@@ -30,7 +30,7 @@ import org.json.JSONObject;
  * </ul>
  *
  * <p>
- * The fields of the attached {@link JSONObject} should be namespaced by the
+ * The fields of the attached JSONObject should be namespaced by the
  * application defining that attribute's specification. Musubi reserves some
  * common names, as enumerated by this class's defined constants.
  */

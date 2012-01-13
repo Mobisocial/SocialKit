@@ -20,9 +20,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import mobisocial.socialkit.Obj;
-
-import org.json.JSONObject;
-
 import android.content.ContentValues;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -30,10 +27,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
 import edu.stanford.junction.Junction;
-import edu.stanford.junction.JunctionException;
-import edu.stanford.junction.android.AndroidJunctionMaker;
 import edu.stanford.junction.api.activity.JunctionActor;
-import edu.stanford.junction.api.messaging.MessageHeader;
 
 /**
  * A Musubi feed of objects.
@@ -73,31 +67,6 @@ public class DbFeed {
 
     public final Uri getUri() {
         return mUri;
-    }
-
-    /**
-     * {@hide}
-     */
-    public Junction getJunction() {
-        if (mJunction != null) {
-            return mJunction;
-        }
-
-        if (mActor == null) {
-            mActor = new DbJunctionActor();
-        }
-
-        try {
-            String uid = mUri.getLastPathSegment();
-            uid = uid.replace("^", "_").replace(":", "_");
-            Uri uri = new Uri.Builder().scheme("junction")
-                    .authority("sb.openjunction.org")
-                    .appendPath("dbf-" + uid).build();
-            mJunction = AndroidJunctionMaker.bind(uri, mActor);
-        } catch (JunctionException e) {
-            Log.e(TAG, "Error connecting to junction");
-        }
-        return mJunction;
     }
 
     public DbObj getLatestObj() {
@@ -244,13 +213,6 @@ public class DbFeed {
     }
 
     private final ContentObserver mContentObserver;
-
-    class DbJunctionActor extends JunctionActor {
-        @Override
-        public void onMessageReceived(MessageHeader h, JSONObject json) {
-            // TODO: trigger user-defined handlers
-        }
-    }
 
     public static Uri uriForName(String feedName) {
         return Uri.parse("content://" + Musubi.AUTHORITY + "/feeds/" + feedName);

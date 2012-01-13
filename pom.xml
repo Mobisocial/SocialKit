@@ -86,9 +86,11 @@
           -->
           <bootclasspath>${sun.boot.class.path}</bootclasspath>
           <additionalparam>
+	     -XDignore.symbol.file
              -quiet
              -federate Android http://developer.android.com/reference
              -federationxml Android http://mobisocial.stanford.edu/api/android-9.xml
+             -federate Junction http://openjunction.github.com/AndroidJunction/api/reference
              -hdf project.name "${project.name}"
              -d ${project.build.directory}/apidocs
              -generatesources

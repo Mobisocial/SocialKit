@@ -139,9 +139,8 @@ public class Musubi {
             }
         }
         if (mObj == null) {
-            if (intent.hasExtra(EXTRA_OBJ_HASH)) {
-                long hash = intent.getLongExtra(EXTRA_OBJ_HASH, 0);
-                mObj = objForHash(hash);
+            if (intent.hasExtra(EXTRA_OBJ_URI)) {
+                mObj = objForUri((Uri)intent.getParcelableExtra(EXTRA_OBJ_URI));
             }
         }
     }
