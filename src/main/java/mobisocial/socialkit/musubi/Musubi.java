@@ -498,7 +498,7 @@ public class Musubi {
      * Connects to a real-time multi-way, globally ordered data stream
      * associated with the given object.
      */
-    public Junction joinJunctionForObj(JunctionActor actor, DbObj obj)
+    public Junction junctionForObj(JunctionActor actor, DbObj obj)
             throws JunctionException {
         String uid = obj.getUri().getLastPathSegment();
         uid = uid.replace("^", "_").replace(":", "_");
