@@ -65,6 +65,7 @@ public class DbObj implements SignedObj {
     public static final String COL_RAW = "raw";
     public static final String COL_KEY_INT = "key_int";
     public static final String COL_LAST_MODIFIED_TIMESTAMP = "last_modified_timestamp";
+    public static final String COL_RENDERABLE = "renderable";
 
     // Lazy loaded.
     private SoftReference<DbUser> mSenderReference;

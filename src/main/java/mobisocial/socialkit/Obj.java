@@ -41,7 +41,13 @@ public interface Obj {
     public static final String TYPE_TEXT = "status";
 
     /**
-     * (Required) The "type" of this message, as defined by the signing application.
+     * A Json field for specifying HTML that should be rendered in
+     * a Musubi feed.
+     */
+    public static final String FIELD_HTML = "__html";
+
+    /**
+     * (Required) The "type" of this Obj.
      */
     public String getType();
 
