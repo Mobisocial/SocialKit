@@ -54,9 +54,8 @@ public class RSACrypto {
             UnsupportedEncodingException {
         MessageDigest md;
         md = MessageDigest.getInstance("SHA-1");
-        byte[] sha1hash = new byte[40];
         md.update(input, 0, input.length);
-        sha1hash = md.digest();
+        byte[] sha1hash = md.digest();
         return convertToHex(sha1hash);
     }
 
