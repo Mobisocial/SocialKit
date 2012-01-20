@@ -22,11 +22,6 @@ import java.util.LinkedHashMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import edu.stanford.junction.Junction;
-import edu.stanford.junction.JunctionException;
-import edu.stanford.junction.android.AndroidJunctionMaker;
-import edu.stanford.junction.api.activity.JunctionActor;
-
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
@@ -38,6 +33,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import edu.stanford.junction.Junction;
+import edu.stanford.junction.JunctionException;
+import edu.stanford.junction.android.AndroidJunctionMaker;
+import edu.stanford.junction.api.activity.JunctionActor;
 
 /**
  * Use the DungBeetle APIs in your application.
@@ -65,10 +64,14 @@ public class Musubi {
     private final ContentObserver mContactUpdateObserver;
 
     public static boolean isMusubiInstalled(Context context) {
-        final Intent intent = new Intent(Intent.ACTION_MAIN, null);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        intent.setPackage("edu.stanford.mobisocial.dungbeetle");
-        return context.getPackageManager().queryIntentActivities(intent, 0).size() > 0;
+        try {
+            final Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            intent.setPackage("edu.stanford.mobisocial.dungbeetle");
+            return context.getPackageManager().queryIntentActivities(intent, 0).size() > 0;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     public static DbObj getContextObj(Context context, Intent intent) {

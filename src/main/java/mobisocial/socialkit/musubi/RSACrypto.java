@@ -12,6 +12,10 @@ import java.security.spec.X509EncodedKeySpec;
 
 import mobisocial.socialkit.util.FastBase64;
 
+/**
+ * TODO: kill me
+ * @hide
+ */
 public class RSACrypto {
 
     public static RSAPublicKey publicKeyFromString(String str) {
