@@ -284,8 +284,8 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
                 handleInterrupt(turnTaken, obj);
                 return;
             }
-            if (turnTaken < mLastTurn) {
-                Log.w(TAG, "Turn " + turnTaken + " is before known turn " + mLastTurn);
+            if (turnTaken <= mLastTurn) {
+                Log.w(TAG, "Turn " + turnTaken + " is at/before known turn " + mLastTurn);
                 return;
             }
             mLastTurn = turnTaken;
