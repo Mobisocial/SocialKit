@@ -60,7 +60,7 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
         String sortOrder = DbObj.COL_KEY_INT + " desc";
         mDbFeed.setQueryArgs(projection, selection, selectionArgs, sortOrder);
         mDbFeed.registerStateObserver(mInternalStateObserver);
-        Obj obj = mDbFeed.getLatestObj();
+        Obj obj = mDbFeed.getLatestObj(TYPE_APP_STATE);
         //Log.d(TAG, "The latest obj has " + obj.getIntKey());
         mLocalMember = mDbFeed.getLocalUser().getId();
 
@@ -239,7 +239,7 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
      */
     public JSONObject getLatestState() {
         if (mLatestState == null) {
-            Obj obj = mDbFeed.getLatestObj();
+            Obj obj = mDbFeed.getLatestObj(TYPE_APP_STATE);
             if (obj != null && obj.getJson() != null && obj.getJson().has("state")) {
                 mLatestState = obj.getJson().optJSONObject("state");
 				Log.d(TAG, "returning latest state " + mLatestState + "; " + obj.getInt());
@@ -269,13 +269,15 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
             return;
         }
         if (DBG) Log.d(TAG, "interrupting with " + obj);
-        mDbFeed.postObj(new MemObj(TYPE_APP_STATE, obj.getJson(), null, mLastTurn + 1));
+        JSONObject out = obj.getJson();
+        FeedRenderable thumb = getFeedView(out.optJSONObject("state"));
+        postAppStateRenderable(out, thumb);
     }
 
     private final FeedObserver mInternalStateObserver = new FeedObserver() {
         @Override
         public void onUpdate(DbObj obj) {
-            Log.d(TAG, "Update with " + obj.getType());
+            if (DBG) Log.d(TAG, "Update with " + obj.getType());
             Integer turnTaken = obj.getInt();
             if (turnTaken == null) {
                 Log.w(TAG, "no turn taken.");

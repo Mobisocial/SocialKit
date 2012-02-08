@@ -70,9 +70,30 @@ public class DbFeed {
         return mUri;
     }
 
+    /**
+     * @hide
+     */
     public DbObj getLatestObj() {
         String sortOrder = DbObj.COL_ID + " desc"; // TODO: consistent ordering
         Cursor cursor = query(mProjection, mSelection, mSelectionArgs, sortOrder);
+        if (cursor != null && cursor.moveToFirst()) {
+            try {
+                return mMusubi.objForCursor(cursor);
+            } finally {
+                cursor.close();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @hide
+     */
+    public DbObj getLatestObj(String type) {
+        String sortOrder = DbObj.COL_ID + " desc";
+        String selection = "type = ?";
+        String[] args = new String[] { type };
+        Cursor cursor = query(mProjection, selection, args, sortOrder);
         if (cursor != null && cursor.moveToFirst()) {
             try {
                 return mMusubi.objForCursor(cursor);
