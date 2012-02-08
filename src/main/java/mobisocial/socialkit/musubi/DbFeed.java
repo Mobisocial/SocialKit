@@ -40,6 +40,7 @@ public class DbFeed {
     private final Musubi mMusubi;
     private final Uri mUri;
     private final String mFeedName;
+    private final ContentObserver mContentObserver;
     private final Set<FeedObserver> mObservers = new HashSet<FeedObserver>();
     private boolean mObservingProvider = false;
     JunctionActor mActor;
@@ -204,15 +205,15 @@ public class DbFeed {
             Log.e(TAG, "Error querying for app state", e);
             return;
         }
-
+        if (obj == null) {
+            return;
+        }
         synchronized (DbFeed.this) {
             for (FeedObserver observer : mObservers) {
                 observer.onUpdate(obj);
             }
         }
     }
-
-    private final ContentObserver mContentObserver;
 
     public static Uri uriForName(String feedName) {
         return Uri.parse("content://" + Musubi.AUTHORITY + "/feeds/" + feedName);

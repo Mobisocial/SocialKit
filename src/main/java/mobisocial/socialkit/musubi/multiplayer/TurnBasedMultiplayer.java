@@ -55,8 +55,8 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
         mObjContext = objContext;
         mDbFeed = mObjContext.getSubfeed();
         String[] projection = null;
-        String selection = "type = ?";
-        String[] selectionArgs = new String[] { TYPE_APP_STATE };
+        String selection = "type = ? OR type = ?";
+        String[] selectionArgs = new String[] { TYPE_APP_STATE, TYPE_INTERRUPT_REQUEST };
         String sortOrder = DbObj.COL_KEY_INT + " desc";
         mDbFeed.setQueryArgs(projection, selection, selectionArgs, sortOrder);
         mDbFeed.registerStateObserver(mInternalStateObserver);
@@ -275,6 +275,7 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
     private final FeedObserver mInternalStateObserver = new FeedObserver() {
         @Override
         public void onUpdate(DbObj obj) {
+            Log.d(TAG, "Update with " + obj.getType());
             Integer turnTaken = obj.getInt();
             if (turnTaken == null) {
                 Log.w(TAG, "no turn taken.");
@@ -323,7 +324,7 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
             if (thumbnail != null) {
                 thumbnail.withJson(b);
             }
-            mDbFeed.postObj(new MemObj(TYPE_APP_STATE, b, null, ++mLastTurn));
+            mDbFeed.postObj(new MemObj(TYPE_APP_STATE, b, null, mLastTurn + 1));
         } catch (JSONException e) {}
     }
 
