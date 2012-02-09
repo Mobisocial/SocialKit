@@ -211,7 +211,7 @@ public class Musubi {
             } catch (IllegalArgumentException e) {
             }
             try {
-                timestamp = cursor.getInt(cursor.getColumnIndexOrThrow(DbObj.COL_TIMESTAMP));
+                timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_TIMESTAMP));
             } catch (IllegalArgumentException e) {
             }
 
