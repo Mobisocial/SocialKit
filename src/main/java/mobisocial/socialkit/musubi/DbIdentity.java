@@ -34,9 +34,9 @@ public abstract class DbIdentity implements User {
      */
     static final String COL_IDENTITY_ID = "identity_id";
     static final String COL_NAME = "name";
-    static final String COL_PICTURE = "thumbnail";
-    static final String COL_ID_HASH = "id_hash";
-    static final long LOCAL_USER_ID = -666;
+    static final String COL_THUMBNAIL = "thumbnail";
+    static final String COL_ID_HASH = "principal_hash";
+    static final String COL_ID_SHORT_HASH = "principal_short_hash";
 
     public abstract long getLocalId();
     public abstract Bitmap getPicture();
@@ -93,7 +93,7 @@ public abstract class DbIdentity implements User {
             }
 
             Uri uri = Musubi.uriForItem(DbThing.IDENTITY, mLocalId);
-            String[] projection = new String[] { DbIdentity.COL_PICTURE };
+            String[] projection = new String[] { DbIdentity.COL_THUMBNAIL };
             Cursor c = sLatestContext.getContentResolver().query(uri, projection, null, null, null);
             try {
                 if (c.moveToFirst()) {

@@ -23,6 +23,7 @@ import java.util.Set;
 
 import mobisocial.socialkit.Obj;
 import mobisocial.socialkit.musubi.Musubi.DbThing;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -241,10 +242,11 @@ public final class DbFeed {
         if (DBG) Log.d(TAG, "noticed change to feed " + mFeedUri);
         DbObj obj = null;
         try {
-            String selection = null;
-            String[] selectionArgs = null;
+            String selection = DbObj.COL_FEED_ID + "=?";
+            String[] selectionArgs = new String[] { Long.toString(ContentUris.parseId(mFeedUri)) };
+            Uri uri = Musubi.uriForDir(DbThing.OBJECT);
             String order = "_id desc LIMIT 1"; // TODO: fix.
-            Cursor c = mMusubi.getContext().getContentResolver().query(mFeedUri, null, selection,
+            Cursor c = mMusubi.getContext().getContentResolver().query(uri, null, selection,
                     selectionArgs, order);
             if (c.moveToFirst()) {
                 obj = mMusubi.objForCursor(c);

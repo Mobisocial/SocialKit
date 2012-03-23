@@ -16,6 +16,7 @@
 
 package mobisocial.socialkit.musubi;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import mobisocial.socialkit.SQLClauseHelper;
@@ -71,14 +72,22 @@ public class Musubi {
         }
     }
 
-    public static DbObj getContextObj(Context context, Intent intent) {
+    public DbObj objFromIntent(Intent intent) {
+        Log.d(TAG, "fetching obj from " + intent);
         if (intent.hasExtra(EXTRA_OBJ_URI)) {
             try {
                 Uri objUri = intent.getParcelableExtra(EXTRA_OBJ_URI);
-                return new Musubi(context).objForUri(objUri);
+                return objForUri(objUri);
             } catch (Exception e) {
+                if (DBG) Log.e(TAG, "couldnt get obj from uri", e);
             }
         }
+        if (intent.getType() != null && intent.getType().startsWith("vnd.musubi.obj/")) {
+            if (intent.getData() != null) {
+                return objForUri(intent.getData());
+            }
+        }
+        if (DBG) Log.e(TAG, "no obj found");
         return null;
     }
 
@@ -225,11 +234,9 @@ public class Musubi {
                 DbObj.OBJ_URI,
                 new String[] {
                         DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_STRING_KEY, DbObj.COL_JSON,
-                        DbObj.COL_RAW, DbObj.COL_IDENTITY_ID, DbObj.COL_UNIVERSAL_HASH,   //TODO: XXXX full hash?
+                        DbObj.COL_RAW, DbObj.COL_IDENTITY_ID, DbObj.COL_UNIVERSAL_HASH,
                         DbObj.COL_FEED_ID, DbObj.COL_INT_KEY, DbObj.COL_TIMESTAMP
-                }, DbObj.COL_ID + " = ?", new String[] {
-                    String.valueOf(localId)
-                }, null);
+                }, DbObj.COL_ID + " = ?", new String[] { String.valueOf(localId) }, null);
         try {
             if (cursor == null || !cursor.moveToFirst()) {
                 Log.w(TAG, "Obj " + localId + " not found.");
@@ -276,25 +283,30 @@ public class Musubi {
         if (localUser != null && localUser.getId().equals(personId)) {
             return localUser;
         }
-        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/"
-                + feedUri.getLastPathSegment());
-        String[] projection = { DbIdentity.COL_IDENTITY_ID, DbIdentity.COL_NAME };
-        String selection = DbIdentity.COL_ID_HASH + " = ?";
-        String[] selectionArgs = new String[] {
-            personId
-        };
+
+        byte[] idHash = MusubiUtil.convertToByteArray(personId);
+        long shortHash = MusubiUtil.shortHash(idHash);
+
+        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
+                feedUri.getLastPathSegment());
+        String[] projection = { DbIdentity.COL_IDENTITY_ID, DbIdentity.COL_NAME, DbIdentity.COL_ID_HASH };
+        String selection = DbIdentity.COL_ID_SHORT_HASH + " = ?";
+        String[] selectionArgs = new String[] { Long.toString(shortHash) };
         String sortOrder = null;
         Cursor c = mContext.getContentResolver().query(uri, projection, selection, selectionArgs,
                 sortOrder);
         try {
-            if (c == null || !c.moveToFirst()) {
-                Log.w(Musubi.TAG, "No user found for " + personId, new Throwable());
-                Log.w(Musubi.TAG, "Local user is " + localUser.getId());
-                return null;
+            while (c != null && c.moveToNext()) {
+                byte[] lookupHash = c.getBlob(2);
+                if (Arrays.equals(idHash, lookupHash)) {
+                    long localId = c.getLong(0);
+                    String name = c.getString(1);
+                    return DbIdentity.forFeedDetails(mContext, name, localId, personId, feedUri);
+                }
             }
-            String name = c.getString(c.getColumnIndexOrThrow(DbIdentity.COL_NAME));
-            long localId = c.getLong(c.getColumnIndexOrThrow(DbIdentity.COL_IDENTITY_ID));
-            return DbIdentity.forFeedDetails(mContext, name, localId, personId, feedUri);
+            Log.w(Musubi.TAG, "No user found for " + personId, new Throwable());
+            Log.w(Musubi.TAG, "Local user is " + localUser.getId());
+            return null;
         } finally {
             if (c != null) {
                 c.close();
@@ -306,12 +318,6 @@ public class Musubi {
         DbIdentity cachedUser = sUserCache.get(localId);
         if (cachedUser != null) {
             return cachedUser;
-        }
-
-        if (localId == DbIdentity.LOCAL_USER_ID) {
-            DbIdentity user = userForLocalDevice(feedUri);
-            sUserCache.put(localId, user);
-            return user;
         }
 
         String feedName;
@@ -339,7 +345,8 @@ public class Musubi {
             }
 
             String name = c.getString(c.getColumnIndexOrThrow(DbIdentity.COL_NAME));
-            String globalId = c.getString(c.getColumnIndexOrThrow(DbIdentity.COL_ID_HASH));
+            byte[] globalIdBytes = c.getBlob(c.getColumnIndexOrThrow(DbIdentity.COL_ID_HASH));
+            String globalId = MusubiUtil.convertToHex(globalIdBytes);
             DbIdentity user = DbIdentity.forFeedDetails(mContext, name, localId, globalId, feedUri);
             sUserCache.put(localId, user);
             return user;

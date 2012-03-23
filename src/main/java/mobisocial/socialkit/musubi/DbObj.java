@@ -169,7 +169,7 @@ public class DbObj implements SignedObj {
         if (user == null) {
             Uri uri = Musubi.uriForItem(DbThing.IDENTITY, mSenderId);
             String[] projection = new String[] { DbIdentity.COL_IDENTITY_ID, DbIdentity.COL_ID_HASH,
-                    DbIdentity.COL_NAME, DbIdentity.COL_PICTURE };
+                    DbIdentity.COL_NAME, DbIdentity.COL_THUMBNAIL };
             String selection = null;
             String[] selectionArgs = null;
             String sortOrder = null;

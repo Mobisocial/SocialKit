@@ -31,6 +31,19 @@ public class MusubiUtil {
         return buf.toString();
     }
 
+    /**
+     * Converts a hex string to a byte array.
+     */
+    public static byte[] convertToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len/2];
+        for (int i = 0; i < len; i += 2) {
+            data[i/2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+
     public static long shortHash(byte[] data) {
         if (data.length < 8) {
             throw new IllegalArgumentException("Data too short");
