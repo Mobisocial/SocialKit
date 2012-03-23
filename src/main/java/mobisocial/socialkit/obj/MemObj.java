@@ -16,12 +16,9 @@
 
 package mobisocial.socialkit.obj;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.net.Uri;
-
 import mobisocial.socialkit.Obj;
+
+import org.json.JSONObject;
 
 /**
  * An Obj implementation held in memory.
@@ -35,16 +32,19 @@ public class MemObj implements Obj {
     private final JSONObject mJson;
     private final byte[] mRaw;
     private final Integer mIntKey;
+    private final String mStringKey;
 
     public MemObj(String type) {
         mType = type;
         mJson = null;
         mRaw = null;
         mIntKey = null;
+        mStringKey = null;
     }
 
     public MemObj(String type, JSONObject json) {
         mType = type;
+        mStringKey = null;
         mJson = json;
         mRaw = null;
         mIntKey = null;
@@ -52,13 +52,23 @@ public class MemObj implements Obj {
 
     public MemObj(String type, JSONObject json, byte[] raw) {
         mType = type;
+        mStringKey = null;
         mJson = json;
         mRaw = raw;
         mIntKey = null;
     }
 
+    public MemObj(String type, JSONObject json, byte[] raw, Integer intKey, String stringKey) {
+        mType = type;
+        mStringKey = stringKey;
+        mJson = json;
+        mRaw = raw;
+        mIntKey = intKey;
+    }
+
     public MemObj(String type, JSONObject json, byte[] raw, Integer intKey) {
         mType = type;
+        mStringKey = null;
         mJson = json;
         mRaw = raw;
         mIntKey = intKey;
@@ -74,15 +84,9 @@ public class MemObj implements Obj {
         return mJson;
     }
 
-    /**
-     * Returns an Obj representing a Uri.
-     */
-    public static Obj forUri(Uri uri) {
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("uri", uri);
-        } catch (JSONException e) {}
-        return new MemObj(TYPE_URI, obj);
+    @Override
+    public String getStringKey() {
+        return mStringKey;
     }
 
     @Override
@@ -91,7 +95,7 @@ public class MemObj implements Obj {
     }
 
     @Override
-    public Integer getInt() {
+    public Integer getIntKey() {
         return mIntKey;
     }
 }

@@ -47,25 +47,30 @@ public interface Obj {
     public static final String FIELD_HTML = "__html";
 
     /**
-     * (Required) The "type" of this Obj.
+     * (Required) The "type" of this obj.
      */
     public String getType();
 
     /**
-     * (Optional) JSON data associated with this Obj.
+     * (Optional) A name for this obj.
+     */
+    public String getStringKey();
+
+    /**
+     * (Optional) JSON data associated with this obj.
      * @return
      */
     public JSONObject getJson();
 
     /**
-     * (Optional) binary data associated with this Obj.
+     * (Optional) binary data associated with this obj.
      * @return
      */
     public byte[] getRaw();
 
     /**
-     * (Optional) Integer for this Obj.
+     * (Optional) Integer for this obj.
      * @return
      */
-    public Integer getInt();
+    public Integer getIntKey();
 }

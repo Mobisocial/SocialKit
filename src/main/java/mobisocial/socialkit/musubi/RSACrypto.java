@@ -10,7 +10,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import mobisocial.socialkit.util.FastBase64;
+import android.util.Base64;
 
 /**
  * TODO: kill me
@@ -20,7 +20,7 @@ public class RSACrypto {
 
     public static RSAPublicKey publicKeyFromString(String str) {
         try{
-            byte[] pubKeyBytes = FastBase64.decode(str);
+            byte[] pubKeyBytes = Base64.decode(str, Base64.DEFAULT);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(pubKeyBytes);
             return (RSAPublicKey)keyFactory.generatePublic(publicKeySpec);                
@@ -32,7 +32,7 @@ public class RSACrypto {
 
     public static RSAPrivateKey privateKeyFromString(String str){
         try{
-            byte[] privKeyBytes = FastBase64.decode(str);
+            byte[] privKeyBytes = Base64.decode(str, Base64.DEFAULT);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privKeyBytes);
             return (RSAPrivateKey)keyFactory.generatePrivate(privateKeySpec);

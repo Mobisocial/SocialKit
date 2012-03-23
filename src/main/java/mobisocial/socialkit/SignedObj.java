@@ -41,14 +41,7 @@ public interface SignedObj extends Obj {
     public User getSender();
 
     /**
-     * A user maintains a local sequence number indicating how many messages
-     * he has sent to the feed given by {@link #getFeedName()}
+     * The timestamp of when the obj was sent.
      */
-    public long getSequenceNumber();
-
-    /**
-     * The feed to which this Obj has been sent.
-     * @return
-     */
-    public String getFeedName();
+    public long getTimestamp();
 }

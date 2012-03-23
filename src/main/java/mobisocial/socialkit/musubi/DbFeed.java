@@ -16,35 +16,36 @@
 
 package mobisocial.socialkit.musubi;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import mobisocial.socialkit.Obj;
+import mobisocial.socialkit.musubi.Musubi.DbThing;
 import android.content.ContentValues;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
-import edu.stanford.junction.Junction;
-import edu.stanford.junction.api.activity.JunctionActor;
 
 /**
  * A Musubi feed of objects.
  * 
  */
-public class DbFeed {
+public final class DbFeed {
     static final String TAG = Musubi.TAG;
     private static final boolean DBG = true;
+    private static final String MIME_TYPE = "vnd.android.cursor.item/vnd.mobisocial.feed";
 
     private final Musubi mMusubi;
-    private final Uri mUri;
-    private final String mFeedName;
+    private final Uri mFeedUri;
+    private final Long mFeedId;
+    private final Long mParentObjectId;
     private final ContentObserver mContentObserver;
     private final Set<FeedObserver> mObservers = new HashSet<FeedObserver>();
     private boolean mObservingProvider = false;
-    JunctionActor mActor;
-    Junction mJunction;
 
     private String[] mProjection = null;
     private String mSelection = null;
@@ -53,12 +54,22 @@ public class DbFeed {
 
     DbFeed(Musubi musubi, Uri feedUri) {
         mMusubi = musubi;
-        mUri = feedUri;
-        mFeedName = mUri.getLastPathSegment();
+        mFeedUri = feedUri;
+
+        String mime = mMusubi.getContext().getContentResolver().getType(feedUri);
+        if (!MIME_TYPE.equals(mime)) {
+            throw new IllegalArgumentException("Uri " + feedUri + " type must be a feed, not " + mime);
+        }
+
+        try {
+            mFeedId = Long.parseLong(mFeedUri.getLastPathSegment());
+            mParentObjectId = null;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Feed id not found.");
+        }
 
         mContentObserver = new ContentObserver(new Handler(
                 mMusubi.getContext().getMainLooper())) {
-
             @Override
             public void onChange(boolean selfChange) {
                 doContentChanged();
@@ -67,7 +78,7 @@ public class DbFeed {
     }
 
     public final Uri getUri() {
-        return mUri;
+        return mFeedUri;
     }
 
     /**
@@ -121,7 +132,9 @@ public class DbFeed {
      */
     public Cursor query(String[] projection, String selection, String[] selectionArgs,
             String order) {
-        return mMusubi.getContext().getContentResolver().query(mUri, projection, selection,
+        Uri queryUri = Musubi.uriForDir(DbThing.OBJECT).buildUpon()
+                .appendQueryParameter("feed_id", ""+mFeedId).build();
+        return mMusubi.getContext().getContentResolver().query(queryUri, projection, selection,
                 selectionArgs, order);
     }
 
@@ -130,7 +143,12 @@ public class DbFeed {
      */
     public Cursor query(String selection, String[] selectionArgs) {
         String order = "_id desc";
-        return mMusubi.getContext().getContentResolver().query(mUri, null, selection,
+        Uri objectsUri = Uri.parse("content://" + Musubi.AUTHORITY + "/objects");
+        selection = MusubiUtil.andClauses(selection, DbObj.COL_FEED_ID + " = " + mFeedId);
+        if (mParentObjectId != null) {
+            selection = MusubiUtil.andClauses(selection, DbObj.COL_PARENT_ID + "=" + mParentObjectId);
+        }
+        return mMusubi.getContext().getContentResolver().query(objectsUri, null, selection,
                 selectionArgs, order);
     }
 
@@ -146,9 +164,9 @@ public class DbFeed {
             mObservers.add(observer);
         }
         if (!mObservingProvider) {
-            if (DBG) Log.d(TAG, "Enabling feed observer on " + mUri);
+            if (DBG) Log.d(TAG, "Enabling feed observer on " + mFeedUri);
             mObservingProvider = true;
-            mMusubi.getContext().getContentResolver().registerContentObserver(mUri, false,
+            mMusubi.getContext().getContentResolver().registerContentObserver(mFeedUri, false,
                     mContentObserver);
         }
     }
@@ -157,50 +175,59 @@ public class DbFeed {
         return mObservers.remove(observer);
     }
 
+    /**
+     * Inserts an object into this feed using a background thread.
+     * @param obj
+     */
     public void postObj(Obj obj) {
-        ContentValues values = DbObj.toContentValues(obj);
-        mMusubi.getContentProviderThread().insert(mUri, values);
+        ContentValues values = DbObj.toContentValues(mFeedUri, obj);
+        Uri objectsUri = Musubi.uriForDir(DbThing.OBJECT);
+        mMusubi.getContentProviderThread().insert(objectsUri, values);
     }
 
-    public DbUser getLocalUser() {
-        return mMusubi.userForLocalDevice(mUri);
+    /**
+     * Inserts an object into this feed on the current thread.
+     */
+    public Uri insert(Obj obj) {
+        ContentValues values = DbObj.toContentValues(mFeedUri, obj);
+        Uri objectsUri = Musubi.uriForDir(DbThing.OBJECT);
+        return mMusubi.getContext().getContentResolver().insert(objectsUri, values);
     }
 
-    public DbUser userForGlobalId(String personId) {
-        return mMusubi.userForGlobalId(mUri, personId);
+    public DbIdentity getLocalUser() {
+        return mMusubi.userForLocalDevice(mFeedUri);
+    }
+
+    public DbIdentity userForGlobalId(String personId) {
+        return mMusubi.userForGlobalId(mFeedUri, personId);
     }
 
     /**
      * List of remote participants available to this feed.
      */
-    public Set<DbUser> getRemoteUsers() {
-        Uri feedMembersUri = Uri.parse("content://" + Musubi.AUTHORITY +
-                "/members/" + mFeedName);
+    public List<DbIdentity> getMembers() {
+        Uri feedMembersUri = Musubi.uriForItem(DbThing.MEMBER, mFeedId);
         Cursor cursor = null;
         try {
             String[] projection = new String[] {
-                    DbUser.COL_ID, DbUser.COL_NAME, DbUser.COL_PERSON_ID };
-            String selection = null;
-            String[] selectionArgs = null;
+                    DbIdentity.COL_IDENTITY_ID, DbIdentity.COL_NAME, DbIdentity.COL_ID_HASH };
+            String selection = DbObj.COL_FEED_ID + " = ?";
+            String[] selectionArgs = new String[] { Long.toString(mFeedId) };
             String order = null;
             cursor = mMusubi.getContext().getContentResolver().query(feedMembersUri, projection,
                     selection, selectionArgs, order);
 
-            HashSet<DbUser> users = new HashSet<DbUser>();
-            if (!cursor.moveToFirst()) {
-                return users; // TODO: doesn't include local user.
-            }
-    
-            int nameIndex = cursor.getColumnIndex(DbUser.COL_NAME);
-            int globalIdIndex = cursor.getColumnIndex(DbUser.COL_PERSON_ID);
-            int localIdIndex = cursor.getColumnIndex(DbUser.COL_ID);
-            while (!cursor.isAfterLast()) {
+            int nameIndex = cursor.getColumnIndex(DbIdentity.COL_NAME);
+            int globalIdIndex = cursor.getColumnIndex(DbIdentity.COL_ID_HASH);
+            int localIdIndex = cursor.getColumnIndex(DbIdentity.COL_IDENTITY_ID);
+            List<DbIdentity> users = new ArrayList<DbIdentity>(cursor.getCount());
+            while (cursor.moveToNext()) {
                 String name = cursor.getString(nameIndex);
-                String globalId = cursor.getString(globalIdIndex);
+                byte[] idHash = cursor.getBlob(globalIdIndex);
+                String globalId = MusubiUtil.convertToHex(idHash);
                 long localId = cursor.getLong(localIdIndex);
-                users.add(DbUser.forFeedDetails(mMusubi.getContext(), name,
-                        localId, globalId, mUri));
-                cursor.moveToNext();
+                users.add(DbIdentity.forFeedDetails(mMusubi.getContext(), name,
+                        localId, globalId, mFeedUri));
             }
             return users;
         } finally {
@@ -211,13 +238,13 @@ public class DbFeed {
     }
 
     private void doContentChanged() {
-        if (DBG) Log.d(TAG, "noticed change to feed " + mUri);
+        if (DBG) Log.d(TAG, "noticed change to feed " + mFeedUri);
         DbObj obj = null;
         try {
             String selection = null;
             String[] selectionArgs = null;
             String order = "_id desc LIMIT 1"; // TODO: fix.
-            Cursor c = mMusubi.getContext().getContentResolver().query(mUri, null, selection,
+            Cursor c = mMusubi.getContext().getContentResolver().query(mFeedUri, null, selection,
                     selectionArgs, order);
             if (c.moveToFirst()) {
                 obj = mMusubi.objForCursor(c);
@@ -236,7 +263,11 @@ public class DbFeed {
         }
     }
 
-    public static Uri uriForName(String feedName) {
-        return Uri.parse("content://" + Musubi.AUTHORITY + "/feeds/" + feedName);
+    public long getLocalId() {
+        return mFeedId;
+    }
+
+    public static Uri uriForId(long feedId) {
+        return Uri.parse("content://" + Musubi.AUTHORITY + "/feeds/" + feedId);
     }
 }

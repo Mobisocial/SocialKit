@@ -16,6 +16,8 @@
 
 package mobisocial.socialkit.musubi.multiplayer;
 
+import java.util.List;
+
 import mobisocial.socialkit.Obj;
 import mobisocial.socialkit.User;
 import mobisocial.socialkit.musubi.DbFeed;
@@ -32,13 +34,22 @@ import android.util.Log;
 
 /**
  * Manages the state machine associated with a turn-based multiplayer application.
- * @see TurnBasedApp
- * 
- * @deprecated
  */
-public abstract class TurnBasedMultiplayer extends Multiplayer {
+public abstract class TurnBasedApp extends Multiplayer {
+    static final String OBJ_STATE = "state";
     static final String OBJ_MEMBER_CURSOR = "member_cursor";
+    static final String OBJ_RENDERING = "__render";
+    static final String APP_RENDERING = "app";
+
+    /**
+     * AppState objects provide state updates to an application instance.
+     */
     static final String TYPE_APP_STATE = "appstate";
+
+    /**
+     * Turn interrupts are attempts to update the app's state when a user doesn't
+     * own the lock on that app's state.
+     */
     static final String TYPE_INTERRUPT_REQUEST = "interrupt";
 
     private final DbObj mObjContext;
@@ -51,7 +62,29 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
     private int mGlobalMemberCursor;
     private Integer mLastTurn;
 
-    public TurnBasedMultiplayer(DbObj objContext) {
+    /**
+     * Prepares a new TurnBasedApp object that can be inserted into a feed.
+     * Once inserted, the object can be used to create a new TurnBasedApp
+     * instance via {@link TurnBasedApp#TurnBasedApp(DbObj)}.
+     */
+    public static Obj newInstance(String type, List<DbIdentity> participants, JSONObject initialState) {
+        JSONObject json = new JSONObject();
+        JSONArray members = new JSONArray();
+        for (DbIdentity id : participants) {
+            members.put(id.getId());
+        }
+        try {
+            json.put(OBJ_STATE, initialState);
+            json.put(OBJ_MEMBERSHIP, members);
+            json.put(OBJ_MEMBER_CURSOR, 0);
+            json.put(OBJ_RENDERING, APP_RENDERING);
+        } catch (JSONException e) {
+            throw new IllegalArgumentException(e);
+        }
+        return new MemObj(type, json);
+    }
+
+    public TurnBasedApp(DbObj objContext) {
         if (objContext == null) {
             throw new NullPointerException("ObjContext is null");
         }
@@ -67,29 +100,8 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
         //Log.d(TAG, "The latest obj has " + obj.getIntKey());
         mLocalMember = mDbFeed.getLocalUser().getId();
 
-        JSONArray membership = null;
         if (obj == null) {
-            // No turn taken yet.
-            Log.e(TAG, "App state is null.");
-            try {
-                membership = objContext.getJson().getJSONArray(OBJ_MEMBERSHIP);
-            } catch (JSONException e) {
-                Log.w(TAG, "No membership for obj context");
-                membership = new JSONArray();
-                membership.put(mLocalMember);
-            }
-
-            mLastTurn = 0;
-            setMembershipFromJson(membership);
-            if (objContext.getSender().getId().equals(mLocalMember)) {
-                // Set the initial state that all members will see
-                mLatestState = getInitialState();
-                Log.d(TAG, "set initial state " + mLatestState);
-                if (mLatestState != null) {
-                    takeTurn(membership, 0, mLatestState);
-                }
-            }
-            return;
+            obj = mObjContext;
         }
 
         // At least one turn has been taken.
@@ -103,9 +115,9 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
 
         JSONArray memberArr = json.optJSONArray(OBJ_MEMBERSHIP);          
         setMembershipFromJson(memberArr);
-
+        mLatestState = json.optJSONObject(OBJ_STATE);
         mLastTurn = (obj.getIntKey() == null) ? 0 : obj.getIntKey();
-        Log.d(TAG, "Read last turn " + mLastTurn);
+        Log.d(TAG, "Read latest " + mLastTurn + ", " + mLatestState);
         mGlobalMemberCursor = (json.has(OBJ_MEMBER_CURSOR)) ? json.optInt(OBJ_MEMBER_CURSOR) : 0;
     }
 
@@ -113,11 +125,6 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
     public User getLocalUser() {
         return mDbFeed.getLocalUser();
     }
-
-    /**
-     * Returns the initial state for this turn-based game.
-     */
-    protected abstract JSONObject getInitialState();
 
     /**
      * Returns a view suitable for display in a feed.
@@ -165,13 +172,15 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
      * If it's my turn, I listen for interrupt requests and,
      * if I see one that is agreeable, I allow it by rebroadcasting
      * as a state update.
+     *
+     * @hide
      */
     public void takeTurnOutOfOrder(JSONArray members, int nextPlayer, JSONObject state) {
         JSONObject out = new JSONObject();
         try {
             out.put(OBJ_MEMBER_CURSOR, nextPlayer);
             out.put(OBJ_MEMBERSHIP, members);
-            out.put("state", state);
+            out.put(OBJ_STATE, state);
         } catch (JSONException e) {
             Log.e(TAG, "Failed to update cursor.", e);
         }
@@ -189,7 +198,7 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
             mGlobalMemberCursor = nextPlayer; 
             out.put(OBJ_MEMBER_CURSOR, mGlobalMemberCursor);
             out.put(OBJ_MEMBERSHIP, members);
-            out.put("state", state);
+            out.put(OBJ_STATE, state);
             mLatestState = state;
         } catch (JSONException e) {
             Log.e(TAG, "Failed to update cursor.", e);
@@ -224,6 +233,8 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
 
     /**
      * Takes the last turn in this turn-based game.
+     *
+     * @hide
      */
     public void takeFinalTurn(GameResult result, FeedRenderable display) {
         postAppStateRenderable(result.getJson(), display);
@@ -259,6 +270,8 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
     /**
      * Handles an interrupt request. It may be useful to override this method
      * to customize for your needs, be mindful of concurrency issues.
+     *
+     * @hide
      */
     protected void handleInterrupt(int turnRequested, DbObj obj) {
         if (DBG) Log.d(TAG, "Incoming interrupt!");

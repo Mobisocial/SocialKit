@@ -17,6 +17,10 @@ import android.database.Cursor;
  * Maintains a high score list for an application. High scores are shared
  * with all friends of the local user who are known to have the application
  * installed.
+ * 
+ * XXX AppFeed needs to be redefined. 
+ *
+ * @hide
  */
 public class HighScoreList {
     public static final String TYPE_HIGHSCORE = "highscore";
@@ -28,7 +32,7 @@ public class HighScoreList {
      */
     public HighScoreList(Musubi musubiContext) {
         mMusubi = musubiContext;
-        mFeed = musubiContext.getAppFeed();
+        mFeed = null; // XXX
     }
 
     /**
@@ -54,7 +58,7 @@ public class HighScoreList {
         String[] projection = null;
         String selection = DbObj.COL_TYPE + " = ?";
         String[] selectionArgs = new String[] { TYPE_HIGHSCORE };
-        String sortOrder = DbObj.COL_KEY_INT + " desc";
+        String sortOrder = DbObj.COL_INT_KEY + " desc";
         Cursor c = mFeed.query(projection, selection, selectionArgs, sortOrder);
         ArrayList<HighScore> scores = new ArrayList<HighScore>(c.getCount());
         if (c.moveToFirst()) {
@@ -79,7 +83,7 @@ public class HighScoreList {
 
         private HighScore(DbObj obj) {
             mUserId = obj.getSender().getLocalId();
-            mScore = obj.getInt();
+            mScore = obj.getIntKey();
             mMeta = obj.getJson();
             mTimestamp = obj.getTimestamp();
         }

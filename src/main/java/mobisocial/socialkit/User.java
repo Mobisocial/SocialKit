@@ -18,9 +18,6 @@ package mobisocial.socialkit;
 
 
 public interface User {
-    public static final String ATTR_RSA_PUBLIC_KEY = "rsapublickey";
-    public static final String ATTR_RSA_PRIVATE_KEY = "rsaprivatekey";
-
     public String getId();
     public String getName();
     public String getAttribute(String attr);
