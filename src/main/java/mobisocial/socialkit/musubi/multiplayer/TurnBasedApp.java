@@ -38,8 +38,6 @@ import android.util.Log;
 public abstract class TurnBasedApp extends Multiplayer {
     static final String OBJ_STATE = "state";
     static final String OBJ_MEMBER_CURSOR = "member_cursor";
-    static final String OBJ_RENDERING = "__render";
-    static final String APP_RENDERING = "app";
 
     /**
      * AppState objects provide state updates to an application instance.
@@ -77,7 +75,7 @@ public abstract class TurnBasedApp extends Multiplayer {
             json.put(OBJ_STATE, initialState);
             json.put(OBJ_MEMBERSHIP, members);
             json.put(OBJ_MEMBER_CURSOR, 0);
-            json.put(OBJ_RENDERING, APP_RENDERING);
+            json.put(Obj.FIELD_RENDER_TYPE, Obj.RENDER_LATEST);
         } catch (JSONException e) {
             throw new IllegalArgumentException(e);
         }

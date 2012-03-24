@@ -47,6 +47,19 @@ public interface Obj {
     public static final String FIELD_HTML = "__html";
 
     /**
+     * Directives indicating how to render the obj in a Musubi feed.
+     *
+     * @hide
+     */
+    public static final String FIELD_RENDER_TYPE = "__render_mode";
+
+    /**
+     * Render strategy that displays the child renderable with largest
+     * intKey value.
+     */
+    public static final String RENDER_LATEST = "latest";
+
+    /**
      * (Required) The "type" of this obj.
      */
     public String getType();

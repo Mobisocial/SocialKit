@@ -277,18 +277,12 @@ public class Musubi {
     }
 
     public DbIdentity userForGlobalId(Uri feedUri, String personId) {
-        // The local user is currently stored specially,
-        // and only one local user is allowed.
-        DbIdentity localUser = userForLocalDevice(feedUri);
-        if (localUser != null && localUser.getId().equals(personId)) {
-            return localUser;
-        }
-
         byte[] idHash = MusubiUtil.convertToByteArray(personId);
         long shortHash = MusubiUtil.shortHash(idHash);
 
-        Uri uri = Uri.parse("content://" + Musubi.AUTHORITY + "/members/" +
-                feedUri.getLastPathSegment());
+        Uri uri = new Uri.Builder().scheme("content").authority(Musubi.AUTHORITY)
+                .appendPath(DbThing.MEMBER.toString()).appendPath(feedUri.getLastPathSegment())
+                .build();
         String[] projection = { DbIdentity.COL_IDENTITY_ID, DbIdentity.COL_NAME, DbIdentity.COL_ID_HASH };
         String selection = DbIdentity.COL_ID_SHORT_HASH + " = ?";
         String[] selectionArgs = new String[] { Long.toString(shortHash) };
@@ -304,8 +298,6 @@ public class Musubi {
                     return DbIdentity.forFeedDetails(mContext, name, localId, personId, feedUri);
                 }
             }
-            Log.w(Musubi.TAG, "No user found for " + personId, new Throwable());
-            Log.w(Musubi.TAG, "Local user is " + localUser.getId());
             return null;
         } finally {
             if (c != null) {
@@ -360,12 +352,12 @@ public class Musubi {
      */
     public DbIdentity userForLocalDevice(Uri feedUri) {
         if (feedUri == null) {
-            feedUri = Musubi.uriForItem(DbThing.FEED, -1);
+            feedUri = Musubi.uriForItem(DbThing.FEED, 0);
         }
         Long feedId = Long.parseLong(feedUri.getLastPathSegment());
         Uri uri = uriForItem(DbThing.MEMBER, feedId);
         String[] projection = { DbIdentity.COL_IDENTITY_ID, DbIdentity.COL_NAME, DbIdentity.COL_ID_HASH };
-        String selection = null;
+        String selection = DbIdentity.COL_OWNED + " = 1";
         String[] selectionArgs = null;
         String sortOrder = null;
         Cursor c = mContext.getContentResolver().query(uri, projection, selection, selectionArgs,
@@ -376,10 +368,13 @@ public class Musubi {
                 return null;
             }
             long localId = c.getLong(c.getColumnIndexOrThrow(DbIdentity.COL_IDENTITY_ID));
+            Log.d(TAG, "local user " + localId);
             String name = c.getString(c.getColumnIndexOrThrow(DbIdentity.COL_NAME));
             byte[] idHash = c.getBlob(c.getColumnIndexOrThrow(DbIdentity.COL_ID_HASH));
             String personId = MusubiUtil.convertToHex(idHash);
-            return DbIdentity.forFeedDetails(mContext, name, localId, personId, feedUri);
+            DbIdentity id = DbIdentity.forFeedDetails(mContext, name, localId, personId, feedUri);
+            Log.d(TAG, "local ident " + id);
+            return id;
         } finally {
             if (c != null) {
                 c.close();

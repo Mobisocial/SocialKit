@@ -37,6 +37,10 @@ public abstract class DbIdentity implements User {
     static final String COL_THUMBNAIL = "thumbnail";
     static final String COL_ID_HASH = "principal_hash";
     static final String COL_ID_SHORT_HASH = "principal_short_hash";
+    static final String COL_OWNED = "owned";
+    static final String COL_CLAIMED = "claimed";
+    static final String COL_BLOCKED = "blocked";
+    static final String COL_WHITELISTED = "whitelisted";
 
     public abstract long getLocalId();
     public abstract Bitmap getPicture();
