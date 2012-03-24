@@ -290,11 +290,12 @@ public class Musubi {
                 selectionArgs, sortOrder);
         try {
             while (c != null && c.moveToNext()) {
-                byte[] lookupHash = c.getBlob(2);
-                if (Arrays.equals(idHash, lookupHash)) {
-                    return DbIdentity.fromStandardCursor(mContext, c);
+                DbIdentity mate = DbIdentity.fromStandardCursor(mContext, c);
+                if (mate.getId().equals(personId)) {
+                    return mate;
                 }
             }
+            Log.e(TAG, "id not found #" + shortHash);
             return null;
         } finally {
             if (c != null) {
