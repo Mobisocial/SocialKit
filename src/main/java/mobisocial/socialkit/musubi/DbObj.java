@@ -136,7 +136,7 @@ public class DbObj implements SignedObj {
      */
     public DbFeed getSubfeed() {
         Uri subfeedUri = mFeedUri.buildUpon()
-                .appendQueryParameter("parent_id", String.valueOf(mLocalId)).build();
+                .appendQueryParameter(DbObj.COL_PARENT_ID, String.valueOf(mLocalId)).build();
         return mMusubi.getFeed(subfeedUri);
     }
 

@@ -64,7 +64,16 @@ public final class DbFeed {
 
         try {
             mFeedId = Long.parseLong(mFeedUri.getLastPathSegment());
-            mParentObjectId = null;
+            String pid = mFeedUri.getQueryParameter(DbObj.COL_PARENT_ID);
+            Long lpid = null;
+            if (pid != null) {
+                try {
+                    lpid = Long.parseLong(pid);
+                    
+                } catch (NumberFormatException e) {
+                }
+            }
+            mParentObjectId = lpid;
         } catch (Exception e) {
             throw new IllegalArgumentException("Feed id not found.");
         }
@@ -86,6 +95,7 @@ public final class DbFeed {
      * @hide
      */
     public DbObj getLatestObj() {
+        Log.d(TAG, "latest of " + mFeedId + "/" + mParentObjectId);
         String sortOrder = DbObj.COL_ID + " desc"; // TODO: consistent ordering
         Cursor cursor = query(mProjection, mSelection, mSelectionArgs, sortOrder);
         if (cursor != null && cursor.moveToFirst()) {
@@ -102,6 +112,7 @@ public final class DbFeed {
      * @hide
      */
     public DbObj getLatestObj(String type) {
+        Log.d(TAG, "querying latest on " + this);
         String sortOrder = DbObj.COL_ID + " desc";
         String selection = "type = ?";
         String[] args = new String[] { type };
@@ -133,9 +144,13 @@ public final class DbFeed {
      */
     public Cursor query(String[] projection, String selection, String[] selectionArgs,
             String order) {
-        Uri queryUri = Musubi.uriForDir(DbThing.OBJECT).buildUpon()
-                .appendQueryParameter("feed_id", ""+mFeedId).build();
-        return mMusubi.getContext().getContentResolver().query(queryUri, projection, selection,
+        Uri.Builder uri = Musubi.uriForDir(DbThing.OBJECT).buildUpon()
+                .appendQueryParameter(DbObj.COL_FEED_ID, ""+mFeedId);
+        if (mParentObjectId != null) {
+            uri.appendQueryParameter(DbObj.COL_PARENT_ID, "" + mParentObjectId);
+        }
+        Log.d(TAG, "querying objects of " + uri);
+        return mMusubi.getContext().getContentResolver().query(uri.build(), projection, selection,
                 selectionArgs, order);
     }
 
@@ -143,14 +158,7 @@ public final class DbFeed {
      * Issues a query over this feed's objects.
      */
     public Cursor query(String selection, String[] selectionArgs) {
-        String order = "_id desc";
-        Uri objectsUri = Uri.parse("content://" + Musubi.AUTHORITY + "/objects");
-        selection = MusubiUtil.andClauses(selection, DbObj.COL_FEED_ID + " = " + mFeedId);
-        if (mParentObjectId != null) {
-            selection = MusubiUtil.andClauses(selection, DbObj.COL_PARENT_ID + "=" + mParentObjectId);
-        }
-        return mMusubi.getContext().getContentResolver().query(objectsUri, null, selection,
-                selectionArgs, order);
+        return query(null, selection, selectionArgs, "_id desc");
     }
 
     /**
@@ -271,5 +279,10 @@ public final class DbFeed {
 
     public static Uri uriForId(long feedId) {
         return Uri.parse("content://" + Musubi.AUTHORITY + "/feeds/" + feedId);
+    }
+
+    @Override
+    public String toString() {
+        return "[feed id:" + mFeedId + ", parent:" + mParentObjectId + "]";
     }
 }
