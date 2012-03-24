@@ -211,7 +211,7 @@ public class DbObj implements SignedObj {
      * Prepares ContentValues that can be delivered to Musubi's Content Provider
      * for insertion into a SocialDb feed.
      */
-    public static ContentValues toContentValues(Uri feedUri, Obj obj) {
+    public static ContentValues toContentValues(Uri feedUri, Long parentObjId, Obj obj) {
         ContentValues values = new ContentValues();
         values.put(DbObj.COL_TYPE, obj.getType());
         if (obj.getStringKey() != null) {
@@ -225,6 +225,9 @@ public class DbObj implements SignedObj {
         }
         if (obj.getRaw() != null) {
             values.put(DbObj.COL_RAW, obj.getRaw());
+        }
+        if (parentObjId != null) {
+            values.put(DbObj.COL_PARENT_ID, parentObjId);
         }
         try {
             Long feedId = Long.parseLong(feedUri.getLastPathSegment());

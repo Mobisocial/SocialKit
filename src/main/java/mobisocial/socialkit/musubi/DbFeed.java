@@ -189,7 +189,7 @@ public final class DbFeed {
      * @param obj
      */
     public void postObj(Obj obj) {
-        ContentValues values = DbObj.toContentValues(mFeedUri, obj);
+        ContentValues values = DbObj.toContentValues(mFeedUri, mParentObjectId, obj);
         Uri objectsUri = Musubi.uriForDir(DbThing.OBJECT);
         mMusubi.getContentProviderThread().insert(objectsUri, values);
     }
@@ -198,7 +198,7 @@ public final class DbFeed {
      * Inserts an object into this feed on the current thread.
      */
     public Uri insert(Obj obj) {
-        ContentValues values = DbObj.toContentValues(mFeedUri, obj);
+        ContentValues values = DbObj.toContentValues(mFeedUri, mParentObjectId, obj);
         Uri objectsUri = Musubi.uriForDir(DbThing.OBJECT);
         return mMusubi.getContext().getContentResolver().insert(objectsUri, values);
     }
