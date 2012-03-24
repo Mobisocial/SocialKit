@@ -218,25 +218,15 @@ public final class DbFeed {
         Uri feedMembersUri = Musubi.uriForItem(DbThing.MEMBER, mFeedId);
         Cursor cursor = null;
         try {
-            String[] projection = new String[] {
-                    DbIdentity.COL_IDENTITY_ID, DbIdentity.COL_NAME, DbIdentity.COL_ID_HASH };
             String selection = DbObj.COL_FEED_ID + " = ?";
             String[] selectionArgs = new String[] { Long.toString(mFeedId) };
             String order = null;
-            cursor = mMusubi.getContext().getContentResolver().query(feedMembersUri, projection,
-                    selection, selectionArgs, order);
+            cursor = mMusubi.getContext().getContentResolver().query(feedMembersUri,
+                    DbIdentity.COLUMNS, selection, selectionArgs, order);
 
-            int nameIndex = cursor.getColumnIndex(DbIdentity.COL_NAME);
-            int globalIdIndex = cursor.getColumnIndex(DbIdentity.COL_ID_HASH);
-            int localIdIndex = cursor.getColumnIndex(DbIdentity.COL_IDENTITY_ID);
             List<DbIdentity> users = new ArrayList<DbIdentity>(cursor.getCount());
             while (cursor.moveToNext()) {
-                String name = cursor.getString(nameIndex);
-                byte[] idHash = cursor.getBlob(globalIdIndex);
-                String globalId = MusubiUtil.convertToHex(idHash);
-                long localId = cursor.getLong(localIdIndex);
-                users.add(DbIdentity.forFeedDetails(mMusubi.getContext(), name,
-                        localId, globalId, mFeedUri));
+                users.add(DbIdentity.fromStandardCursor(mMusubi.getContext(), cursor));
             }
             return users;
         } finally {

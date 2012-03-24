@@ -21,8 +21,8 @@ import java.util.List;
 import mobisocial.socialkit.Obj;
 import mobisocial.socialkit.User;
 import mobisocial.socialkit.musubi.DbFeed;
-import mobisocial.socialkit.musubi.DbObj;
 import mobisocial.socialkit.musubi.DbIdentity;
+import mobisocial.socialkit.musubi.DbObj;
 import mobisocial.socialkit.musubi.FeedObserver;
 import mobisocial.socialkit.obj.MemObj;
 
@@ -160,7 +160,15 @@ public abstract class TurnBasedApp extends Multiplayer {
      * In other words, its the local user's turn.
      */
     public boolean isMyTurn() {
-        return mLocalMemberIndex == mGlobalMemberCursor;
+        if (mGlobalMemberCursor < 0 || mGlobalMemberCursor >= mMembers.length) {
+            throw new IllegalStateException("Invalid global member cursor");
+        }
+        DbIdentity potential = mDbFeed.userForGlobalId(mMembers[mGlobalMemberCursor]);
+        if (potential == null) {
+            throw new IllegalStateException("app member not a feed member " +
+                    "#" + mGlobalMemberCursor + "=" + mMembers[mGlobalMemberCursor]);
+        }
+        return potential.isOwned();
     }
 
     /**
@@ -179,12 +187,12 @@ public abstract class TurnBasedApp extends Multiplayer {
             out.put(OBJ_MEMBER_CURSOR, nextPlayer);
             out.put(OBJ_MEMBERSHIP, members);
             out.put(OBJ_STATE, state);
+
+            if (DBG) Log.d(TAG, "Attempted interrupt #" + mLastTurn);
+            mDbFeed.postObj(new MemObj(TYPE_INTERRUPT_REQUEST, out, null, mLastTurn));
         } catch (JSONException e) {
             Log.e(TAG, "Failed to update cursor.", e);
         }
-
-        if (DBG) Log.d(TAG, "Attempted interrupt #" + mLastTurn);
-        mDbFeed.postObj(new MemObj(TYPE_INTERRUPT_REQUEST, out, null, mLastTurn));
     }
 
     public boolean takeTurn(JSONArray members, int nextPlayer, JSONObject state) {
@@ -198,14 +206,14 @@ public abstract class TurnBasedApp extends Multiplayer {
             out.put(OBJ_MEMBERSHIP, members);
             out.put(OBJ_STATE, state);
             mLatestState = state;
+
+            postAppStateRenderable(out, getFeedView(state));
+            if (DBG) Log.d(TAG, "Sent cursor " + out.optInt(OBJ_MEMBER_CURSOR));
+            return true;
         } catch (JSONException e) {
             Log.e(TAG, "Failed to update cursor.", e);
             return false;
         }
-
-        postAppStateRenderable(out, getFeedView(state));
-        if (DBG) Log.d(TAG, "Sent cursor " + out.optInt(OBJ_MEMBER_CURSOR));
-        return true;
     }
 
     /**

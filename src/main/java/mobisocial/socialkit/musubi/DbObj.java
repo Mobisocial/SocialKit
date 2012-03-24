@@ -168,22 +168,18 @@ public class DbObj implements SignedObj {
         }
         if (user == null) {
             Uri uri = Musubi.uriForItem(DbThing.IDENTITY, mSenderId);
-            String[] projection = new String[] { DbIdentity.COL_IDENTITY_ID, DbIdentity.COL_ID_HASH,
-                    DbIdentity.COL_NAME, DbIdentity.COL_THUMBNAIL };
             String selection = null;
             String[] selectionArgs = null;
             String sortOrder = null;
         	
-    		Cursor c = mMusubi.getContext().getContentResolver().query(
-    		        uri, projection, selection, selectionArgs, sortOrder);
+    		Cursor c = mMusubi.getContext().getContentResolver().query(uri,
+    		        DbIdentity.COLUMNS, selection, selectionArgs, sortOrder);
     		try {
     		    if (!c.moveToFirst()) {
     		        return null;
     		    }
 
-    		    String name = c.getString(2);
-    		    String personId = MusubiUtil.convertToHex(c.getBlob(1));
-    		    user = DbIdentity.forFeedDetails(mMusubi.getContext(), name, mSenderId, personId, mFeedUri);
+    		    user = DbIdentity.fromStandardCursor(mMusubi.getContext(), c);
     		    mSenderReference = new SoftReference<DbIdentity>(user);
     		} finally {
     		    c.close();
