@@ -16,7 +16,6 @@
 
 package mobisocial.socialkit.musubi;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import mobisocial.socialkit.SQLClauseHelper;
@@ -61,7 +60,7 @@ public class Musubi {
     private static final LinkedHashMap<Long, DbIdentity> sUserCache = new UserCache();
     private final ContentObserver mContactUpdateObserver;
 
-    public boolean isMusubiInstalled(Context context) {
+    public static boolean isMusubiInstalled(Context context) {
         try {
             final Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -136,6 +135,8 @@ public class Musubi {
         if (mObj == null) {
             if (intent.hasExtra(EXTRA_OBJ_URI)) {
                 mObj = objForUri((Uri)intent.getParcelableExtra(EXTRA_OBJ_URI));
+            } else {
+                mObj = objForUri(intent.getData());
             }
         }
     }
@@ -451,6 +452,10 @@ public class Musubi {
     public static Uri uriForDir(DbThing type) {
         return new Uri.Builder()
             .scheme("content").authority(AUTHORITY).appendPath(type.toString()).build();
+    }
+
+    public static String mimeTypeFor(String musubiType) {
+        return "vnd.musubi.obj/" + musubiType;
     }
 
     public enum DbThing { 
