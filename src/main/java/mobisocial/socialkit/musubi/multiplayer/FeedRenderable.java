@@ -27,15 +27,15 @@ import org.json.JSONObject;
  * Musubi application.
  */
 public class FeedRenderable {
-    public static final String OBJ_HTML = "html";
-    public static final String OBJ_TEXT = "txt";
-    public static final String OBJ_B64_JPEG = "b64jpgthumb";
+    public static final String OBJ_HTML = Obj.FIELD_HTML;
+    public static final String OBJ_TEXT = "__text";
+    public static final String OBJ_B64_JPEG = "__b64jpgthumb";
 
     private String mHtml;
     private String mText;
     private String mB64Image;
 
-    public JSONObject withJson(JSONObject json) {
+    public JSONObject addToJson(JSONObject json) {
         if (json == null) json = new JSONObject();
         try {
             if (mHtml != null) {
@@ -72,6 +72,6 @@ public class FeedRenderable {
 
     @Deprecated
     public Obj getObj() {
-        return new MemObj(TurnBasedMultiplayer.TYPE_APP_STATE, withJson(new JSONObject()));
+        return new MemObj(TurnBasedMultiplayer.TYPE_APP_STATE, addToJson(new JSONObject()));
     }
 }

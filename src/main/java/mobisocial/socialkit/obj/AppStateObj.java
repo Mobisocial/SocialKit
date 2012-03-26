@@ -32,6 +32,6 @@ public class AppStateObj extends MemObj {
         if (data == null) {
             data = new JSONObject();
         }
-        return renderable.withJson(data) ;
+        return renderable.addToJson(data) ;
     }
 }

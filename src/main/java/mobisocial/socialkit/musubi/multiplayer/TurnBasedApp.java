@@ -260,9 +260,8 @@ public abstract class TurnBasedApp extends Multiplayer {
     public JSONObject getLatestState() {
         if (mLatestState == null) {
             Obj obj = mDbFeed.getLatestObj(TYPE_APP_STATE);
-            if (obj != null && obj.getJson() != null && obj.getJson().has("state")) {
-                mLatestState = obj.getJson().optJSONObject("state");
-				Log.d(TAG, "returning latest state " + mLatestState + "; " + obj.getIntKey());
+            if (obj != null && obj.getJson() != null && obj.getJson().has(OBJ_STATE)) {
+                mLatestState = obj.getJson().optJSONObject(OBJ_STATE);
             }
         }
         return mLatestState;
@@ -292,7 +291,7 @@ public abstract class TurnBasedApp extends Multiplayer {
         }
         if (DBG) Log.d(TAG, "interrupting with " + obj);
         JSONObject out = obj.getJson();
-        FeedRenderable thumb = getFeedView(out.optJSONObject("state"));
+        FeedRenderable thumb = getFeedView(out.optJSONObject(OBJ_STATE));
         postAppStateRenderable(out, thumb);
     }
 
@@ -315,12 +314,12 @@ public abstract class TurnBasedApp extends Multiplayer {
             }
             mLastTurn = turnTaken;
             JSONObject newState = obj.getJson();
-            if (newState == null || !newState.has("state")) return;
+            if (newState == null || !newState.has(OBJ_STATE)) return;
             try {
                 if (newState.has(OBJ_MEMBERSHIP)) {
                     setMembershipFromJson(newState.getJSONArray(OBJ_MEMBERSHIP));
                 }
-                mLatestState = newState.optJSONObject("state");
+                mLatestState = newState.optJSONObject(OBJ_STATE);
                 mGlobalMemberCursor = newState.getInt(OBJ_MEMBER_CURSOR);
                 if (DBG) Log.d(TAG, "Updated cursor to " + mGlobalMemberCursor);
             } catch (JSONException e) {
@@ -346,7 +345,7 @@ public abstract class TurnBasedApp extends Multiplayer {
         try {
             JSONObject b = new JSONObject(state.toString());
             if (thumbnail != null) {
-                thumbnail.withJson(b);
+                thumbnail.addToJson(b);
             }
             mDbFeed.postObj(new MemObj(TYPE_APP_STATE, b, null, mLastTurn + 1));
         } catch (JSONException e) {}

@@ -327,7 +327,7 @@ public abstract class TurnBasedMultiplayer extends Multiplayer {
         try {
             JSONObject b = new JSONObject(state.toString());
             if (thumbnail != null) {
-                thumbnail.withJson(b);
+                thumbnail.addToJson(b);
             }
             mDbFeed.postObj(new MemObj(TYPE_APP_STATE, b, null, mLastTurn + 1));
         } catch (JSONException e) {}
