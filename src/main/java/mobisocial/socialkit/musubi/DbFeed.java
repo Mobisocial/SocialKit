@@ -180,8 +180,13 @@ public final class DbFeed {
         }
     }
 
-    public boolean removeStateObserver(FeedObserver observer) {
-        return mObservers.remove(observer);
+    public boolean unregisterStateObserver(FeedObserver observer) {
+        boolean removed = mObservers.remove(observer);
+        if (mObservers.size() == 0) {
+            mObservingProvider = false;
+            mMusubi.getContext().getContentResolver().unregisterContentObserver(mContentObserver);
+        }
+        return removed;
     }
 
     /**

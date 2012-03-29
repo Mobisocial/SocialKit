@@ -93,7 +93,6 @@ public abstract class TurnBasedApp extends Multiplayer {
         String[] selectionArgs = new String[] { TYPE_APP_STATE, TYPE_INTERRUPT_REQUEST };
         String sortOrder = DbObj.COL_INT_KEY + " desc";
         mDbFeed.setQueryArgs(projection, selection, selectionArgs, sortOrder);
-        mDbFeed.registerStateObserver(mInternalStateObserver);
         Obj obj = mDbFeed.getLatestObj(TYPE_APP_STATE);
         //Log.d(TAG, "The latest obj has " + obj.getIntKey());
         mLocalMember = mDbFeed.getLocalUser().getId();
@@ -117,6 +116,20 @@ public abstract class TurnBasedApp extends Multiplayer {
         mLastTurn = (obj.getIntKey() == null) ? 0 : obj.getIntKey();
         Log.d(TAG, "Read latest " + mLastTurn + ", " + mLatestState);
         mGlobalMemberCursor = (json.has(OBJ_MEMBER_CURSOR)) ? json.optInt(OBJ_MEMBER_CURSOR) : 0;
+    }
+
+    /**
+     * Often called in an activity's onResume method.
+     */
+    public void enableStateUpdates() {
+        mDbFeed.registerStateObserver(mInternalStateObserver);
+    }
+
+    /**
+     * Often called in an activity's onPause method.
+     */
+    public void disableStateUpdates() {
+        mDbFeed.unregisterStateObserver(mInternalStateObserver);
     }
 
     @Override
