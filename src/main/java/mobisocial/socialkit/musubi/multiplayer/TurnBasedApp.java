@@ -36,6 +36,7 @@ import android.util.Log;
  * Manages the state machine associated with a turn-based multiplayer application.
  */
 public abstract class TurnBasedApp extends Multiplayer {
+    final boolean DBG = false;
     static final String OBJ_STATE = "state";
     static final String OBJ_MEMBER_CURSOR = "member_cursor";
 
@@ -114,7 +115,7 @@ public abstract class TurnBasedApp extends Multiplayer {
         setMembershipFromJson(memberArr);
         mLatestState = json.optJSONObject(OBJ_STATE);
         mLastTurn = (obj.getIntKey() == null) ? 0 : obj.getIntKey();
-        Log.d(TAG, "Read latest " + mLastTurn + ", " + mLatestState);
+        if (DBG) Log.d(TAG, "Read latest " + mLastTurn + ", " + mLatestState);
         mGlobalMemberCursor = (json.has(OBJ_MEMBER_CURSOR)) ? json.optInt(OBJ_MEMBER_CURSOR) : 0;
     }
 
