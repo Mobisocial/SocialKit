@@ -48,8 +48,8 @@ public class Musubi {
      */
     public static final String AUTHORITY = "org.musubi.db";
     private static final String SUPER_APP_ID = "mobisocial.musubi";
-    public static final String EXTRA_FEED_URI = "mobisocial.db.FEED";
-    public static final String EXTRA_OBJ_URI = "mobisocial.db.OBJ_URI";
+    public static final String EXTRA_FEED_URI = "feedUri";
+    public static final String EXTRA_OBJ_URI = "objUri";
     
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
