@@ -168,6 +168,9 @@ public final class DbFeed {
         return query(mProjection, mSelection, mSelectionArgs, mSortOrder);
     }
 
+    /**
+     * @hide
+     */
     public void registerStateObserver(FeedObserver observer) {
         synchronized (DbFeed.this) {
             mObservers.add(observer);
@@ -180,6 +183,9 @@ public final class DbFeed {
         }
     }
 
+    /**
+     * @hide
+     */
     public boolean unregisterStateObserver(FeedObserver observer) {
         boolean removed = mObservers.remove(observer);
         if (mObservers.size() == 0) {
@@ -191,7 +197,6 @@ public final class DbFeed {
 
     /**
      * Inserts an object into this feed using a background thread.
-     * @param obj
      */
     public void postObj(Obj obj) {
         ContentValues values = DbObj.toContentValues(mFeedUri, mParentObjectId, obj);

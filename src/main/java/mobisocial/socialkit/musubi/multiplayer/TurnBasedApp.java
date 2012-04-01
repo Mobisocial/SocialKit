@@ -23,20 +23,26 @@ import mobisocial.socialkit.User;
 import mobisocial.socialkit.musubi.DbFeed;
 import mobisocial.socialkit.musubi.DbIdentity;
 import mobisocial.socialkit.musubi.DbObj;
-import mobisocial.socialkit.musubi.FeedObserver;
+import mobisocial.socialkit.musubi.Musubi;
 import mobisocial.socialkit.obj.MemObj;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.database.ContentObserver;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Handler;
 import android.util.Log;
 
 /**
  * Manages the state machine associated with a turn-based multiplayer application.
  */
 public abstract class TurnBasedApp extends Multiplayer {
-    final boolean DBG = false;
+    protected boolean DBG = false;
+    protected static final int NO_TURN = -1;
+
     static final String OBJ_STATE = "state";
     static final String OBJ_MEMBER_CURSOR = "member_cursor";
 
@@ -51,15 +57,18 @@ public abstract class TurnBasedApp extends Multiplayer {
      */
     static final String TYPE_INTERRUPT_REQUEST = "interrupt";
 
+    private final Musubi mMusubi;
+    private final ContentObserver mObserver;
     private final DbObj mObjContext;
     private final DbFeed mDbFeed;
     private final String mLocalMember;
+    private boolean mObservingUpdates;
 
     private JSONObject mLatestState;
     private String[] mMembers;
     private int mLocalMemberIndex;
     private int mGlobalMemberCursor;
-    private Integer mLastTurn;
+    private int mLastTurn = NO_TURN;
 
     /**
      * Prepares a new TurnBasedApp object that can be inserted into a feed.
@@ -80,57 +89,69 @@ public abstract class TurnBasedApp extends Multiplayer {
         } catch (JSONException e) {
             throw new IllegalArgumentException(e);
         }
-        return new MemObj(type, json);
+        return new MemObj(type, json, null, 0);
     }
 
-    public TurnBasedApp(DbObj objContext) {
-        if (objContext == null) {
+    public TurnBasedApp(Musubi musubi, DbObj objContext) {
+        if (musubi == null || objContext == null) {
             throw new NullPointerException("ObjContext is null");
         }
+
+        mMusubi = musubi;
         mObjContext = objContext;
         mDbFeed = mObjContext.getSubfeed();
-        String[] projection = null;
-        String selection = "type = ? OR type = ?";
-        String[] selectionArgs = new String[] { TYPE_APP_STATE, TYPE_INTERRUPT_REQUEST };
-        String sortOrder = DbObj.COL_INT_KEY + " desc";
-        mDbFeed.setQueryArgs(projection, selection, selectionArgs, sortOrder);
-        Obj obj = mDbFeed.getLatestObj(TYPE_APP_STATE);
-        //Log.d(TAG, "The latest obj has " + obj.getIntKey());
+        mObserver = new TurnObserver(new Handler(mMusubi.getContext().getMainLooper()));
         mLocalMember = mDbFeed.getLocalUser().getId();
+    }
 
-        if (obj == null) {
-            obj = mObjContext;
+    DbObj fetchLatestState() {
+        String[] projection = null;
+        String selection = "type = ?";
+        String[] args = new String[] { TYPE_APP_STATE };
+        String sortOrder = DbObj.COL_INT_KEY + " desc";
+        Cursor cursor = mDbFeed.query(projection, selection, args, sortOrder);
+        if (cursor != null && cursor.moveToFirst()) {
+            try {
+                return mMusubi.objForCursor(cursor);
+            } finally {
+                cursor.close();
+            }
         }
+        return null;
+    }
 
-        // At least one turn has been taken.
-        JSONObject json = obj.getJson();
-        if (json == null || !json.has(OBJ_MEMBERSHIP)) {
-            Log.e(TAG, "App state has no membership.");
-            mMembers = null;
-            mLocalMemberIndex = -1;
-            return;
+    DbObj fetchLatestInterrupt() {
+        String[] projection = null;
+        String selection = "type = ?";
+        String[] args = new String[] { TYPE_INTERRUPT_REQUEST };
+        String sortOrder = DbObj.COL_INT_KEY + " desc";
+        Cursor cursor = mDbFeed.query(projection, selection, args, sortOrder);
+        if (cursor != null && cursor.moveToFirst()) {
+            try {
+                return mMusubi.objForCursor(cursor);
+            } finally {
+                cursor.close();
+            }
         }
-
-        JSONArray memberArr = json.optJSONArray(OBJ_MEMBERSHIP);          
-        setMembershipFromJson(memberArr);
-        mLatestState = json.optJSONObject(OBJ_STATE);
-        mLastTurn = (obj.getIntKey() == null) ? 0 : obj.getIntKey();
-        if (DBG) Log.d(TAG, "Read latest " + mLastTurn + ", " + mLatestState);
-        mGlobalMemberCursor = (json.has(OBJ_MEMBER_CURSOR)) ? json.optInt(OBJ_MEMBER_CURSOR) : 0;
+        return null;
     }
 
     /**
      * Often called in an activity's onResume method.
      */
     public void enableStateUpdates() {
-        mDbFeed.registerStateObserver(mInternalStateObserver);
+        Uri uri = mDbFeed.getUri();
+        mMusubi.getContext().getContentResolver().registerContentObserver(uri, false, mObserver);
+        mObserver.onChange(false); // keep getLatestState() synchronized
+        mObservingUpdates = true;
     }
 
     /**
      * Often called in an activity's onPause method.
      */
     public void disableStateUpdates() {
-        mDbFeed.unregisterStateObserver(mInternalStateObserver);
+        mMusubi.getContext().getContentResolver().unregisterContentObserver(mObserver);
+        mObservingUpdates = false;
     }
 
     @Override
@@ -272,17 +293,21 @@ public abstract class TurnBasedApp extends Multiplayer {
      * Returns the latest application state.
      */
     public JSONObject getLatestState() {
-        if (mLatestState == null) {
-            Obj obj = mDbFeed.getLatestObj(TYPE_APP_STATE);
-            if (obj != null && obj.getJson() != null && obj.getJson().has(OBJ_STATE)) {
-                mLatestState = obj.getJson().optJSONObject(OBJ_STATE);
-            }
+        if (!mObservingUpdates) {
+            mObserver.onChange(true);
         }
         return mLatestState;
     }
 
+    public int getLastTurnNumber() {
+        if (!mObservingUpdates) {
+            mObserver.onChange(true);
+        }
+        return mLastTurn;
+    }
+
     /**
-     * Handles newly received state updates.
+     * Override this method to handle state updates to this turn-basd app.
      */
     protected abstract void onStateUpdate(JSONObject json);
 
@@ -299,7 +324,7 @@ public abstract class TurnBasedApp extends Multiplayer {
             return;
         }
 
-        if (turnRequested != mLastTurn) {
+        if (turnRequested != getLastTurnNumber()) {
             if (DBG) Log.d(TAG, "stale state.");
             return;
         }
@@ -308,41 +333,6 @@ public abstract class TurnBasedApp extends Multiplayer {
         FeedRenderable thumb = getFeedView(out.optJSONObject(OBJ_STATE));
         postAppStateRenderable(out, thumb);
     }
-
-    private final FeedObserver mInternalStateObserver = new FeedObserver() {
-        @Override
-        public void onUpdate(DbObj obj) {
-            if (DBG) Log.d(TAG, "Update with " + obj.getType());
-            Integer turnTaken = obj.getIntKey();
-            if (turnTaken == null) {
-                Log.w(TAG, "no turn taken.");
-                return;
-            }
-            if (TYPE_INTERRUPT_REQUEST.equals(obj.getType())) {
-                handleInterrupt(turnTaken, obj);
-                return;
-            }
-            if (turnTaken <= mLastTurn) {
-                Log.w(TAG, "Turn " + turnTaken + " is at/before known turn " + mLastTurn);
-                return;
-            }
-            mLastTurn = turnTaken;
-            JSONObject newState = obj.getJson();
-            if (newState == null || !newState.has(OBJ_STATE)) return;
-            try {
-                if (newState.has(OBJ_MEMBERSHIP)) {
-                    setMembershipFromJson(newState.getJSONArray(OBJ_MEMBERSHIP));
-                }
-                mLatestState = newState.optJSONObject(OBJ_STATE);
-                mGlobalMemberCursor = newState.getInt(OBJ_MEMBER_CURSOR);
-                if (DBG) Log.d(TAG, "Updated cursor to " + mGlobalMemberCursor);
-            } catch (JSONException e) {
-                Log.e(TAG, "Failed to get member_cursor from " + newState);
-            }
-
-            onStateUpdate(mLatestState);
-        }
-    };
 
     /**
      * Returns the array of member identifiers.
@@ -365,7 +355,82 @@ public abstract class TurnBasedApp extends Multiplayer {
         } catch (JSONException e) {}
     }
 
-    public interface StateObserver {
-        public void onUpdate(JSONObject state);
+    /**
+     * Monitors this turn-based app's subfeed for state updates and populates related
+     * state member variables.
+     */
+    class TurnObserver extends ContentObserver {
+        public TurnObserver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            updateState(selfChange);
+            if (!selfChange) attemptInterrupt();
+        }
+
+        void updateState(boolean explicitRequest) {
+            DbObj obj = fetchLatestState();
+            if (DBG) Log.e(TAG, "fetched " + obj);
+            if (obj == null) {
+                obj = mObjContext;
+            }
+
+            JSONObject json = obj.getJson();
+            if (json == null || !json.has(OBJ_MEMBERSHIP)) {
+                if (DBG) Log.e(TAG, "App state has no membership.");
+                mMembers = null;
+                mLocalMemberIndex = -1;
+                mGlobalMemberCursor = 0;
+                return;
+            }
+            try {
+                setMembershipFromJson(json.getJSONArray(OBJ_MEMBERSHIP));
+            } catch (JSONException e) {
+                Log.e(TAG, "Error parsing membership", e);
+                return;
+            }
+
+            Integer turnTaken = obj.getIntKey();
+            if (turnTaken == null) {
+                if (DBG) Log.e(TAG, "no turn taken.");
+                return;
+            }
+
+            if (mLastTurn != NO_TURN && turnTaken <= mLastTurn) {
+                if (DBG) Log.d(TAG, "Turn " + turnTaken + " is at/before known turn " + mLastTurn);
+                return;
+            }
+            mLastTurn = turnTaken;
+            JSONObject newState = obj.getJson();
+            if (newState == null || !newState.has(OBJ_STATE)) {
+                if (DBG) Log.w(TAG, "No state for update " + obj);
+                return;
+            }
+            try {
+                mLatestState = newState.optJSONObject(OBJ_STATE);
+                mGlobalMemberCursor = newState.getInt(OBJ_MEMBER_CURSOR);
+                if (DBG) Log.i(TAG, "Updated cursor to " + mGlobalMemberCursor);
+            } catch (JSONException e) {
+                Log.e(TAG, "Failed to get member_cursor from " + newState);
+            }
+
+            if (!explicitRequest) {
+                onStateUpdate(mLatestState);
+            }
+        }
+
+        void attemptInterrupt() {
+            DbObj interrupt = fetchLatestInterrupt();
+            if (interrupt == null) {
+                return;
+            }
+            Integer turnRequested = interrupt.getIntKey();
+            if (turnRequested == null || turnRequested < mLastTurn) {
+                return;
+            }
+            handleInterrupt(turnRequested, interrupt);
+        }
     }
 }

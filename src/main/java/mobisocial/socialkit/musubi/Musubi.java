@@ -115,7 +115,10 @@ public class Musubi {
         return mContentProviderThread;
     }
 
-    Context getContext() {
+    /**
+     * @hide
+     */
+    public Context getContext() {
         return mContext;
     }
 
