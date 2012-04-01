@@ -217,6 +217,7 @@ public abstract class TurnBasedApp extends Multiplayer {
      * @hide
      */
     public void takeTurnOutOfOrder(JSONArray members, int nextPlayer, JSONObject state) {
+        getLatestState(); // force update
         JSONObject out = new JSONObject();
         try {
             out.put(OBJ_MEMBER_CURSOR, nextPlayer);
@@ -231,6 +232,7 @@ public abstract class TurnBasedApp extends Multiplayer {
     }
 
     public boolean takeTurn(JSONArray members, int nextPlayer, JSONObject state) {
+        getLatestState(); // force update
         if (!isMyTurn()) {
             return false;
         }
