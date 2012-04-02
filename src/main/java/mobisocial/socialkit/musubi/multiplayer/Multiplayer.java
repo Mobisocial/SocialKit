@@ -17,32 +17,14 @@
 package mobisocial.socialkit.musubi.multiplayer;
 
 import mobisocial.socialkit.User;
+import mobisocial.socialkit.musubi.Musubi;
 
 public abstract class Multiplayer {
     /**
-     * Launch an application with a connection to a {@link DbFeed}, creating
-     * a new {@see DbObj} obj context.
-     * {@see Intent#CATEGORY_LAUNCHER}
+     * Launch an application with a connection to a {@link DbFeed}.
+     * The feed uri is given as {@link Musubi#EXTRA_FEED_URI}.
      */
-    public static final String ACTION_CONNECTED = "mobisocial.intent.action.CONNECTED";
-
-    /**
-     * Launches an application with a reference to a {@link DbFeed}.
-     * <p>Introduced: SocialKit 0.1.7, Musubi r99.
-     */
-    public static final String ACTION_PUBLISH = "mobisocial.intent.action.PUBLISH";
-
-    /**
-     * Launch an application with a connection to a single remote user.
-     * {@see Intent#CATEGORY_LAUNCHER}
-     */
-    public static final String ACTION_TWO_PLAYERS = "mobisocial.intent.action.TWO_PLAYERS";
-
-    /**
-     * Launch an application with a connection to remote users.
-     * {@see Intent#CATEGORY_LAUNCHER}
-     */
-    public static final String ACTION_MULTIPLAYER = "mobisocial.intent.action.MULTIPLAYER";
+    public static final String CATEGORIY_MUSUBI_MENU = "musubi.intent.category.MENU";
 
     public static final String OBJ_MEMBERSHIP = "membership";
     public static final String OBJ_MEMBER_CURSOR = "member_cursor";

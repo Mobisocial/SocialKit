@@ -108,7 +108,7 @@ public abstract class TurnBasedApp extends Multiplayer {
         String[] projection = null;
         String selection = "type = ?";
         String[] args = new String[] { TYPE_APP_STATE };
-        String sortOrder = DbObj.COL_INT_KEY + " desc";
+        String sortOrder = DbObj.COL_INT_KEY + " desc LIMIT 1";
         Cursor cursor = mDbFeed.query(projection, selection, args, sortOrder);
         if (cursor != null && cursor.moveToFirst()) {
             try {
@@ -124,7 +124,7 @@ public abstract class TurnBasedApp extends Multiplayer {
         String[] projection = null;
         String selection = "type = ?";
         String[] args = new String[] { TYPE_INTERRUPT_REQUEST };
-        String sortOrder = DbObj.COL_INT_KEY + " desc";
+        String sortOrder = DbObj.COL_INT_KEY + " desc LIMIT 1";
         Cursor cursor = mDbFeed.query(projection, selection, args, sortOrder);
         if (cursor != null && cursor.moveToFirst()) {
             try {
@@ -296,14 +296,14 @@ public abstract class TurnBasedApp extends Multiplayer {
      */
     public JSONObject getLatestState() {
         if (!mObservingUpdates) {
-            mObserver.onChange(true);
+            mObserver.onChange(false);
         }
         return mLatestState;
     }
 
     public int getLastTurnNumber() {
         if (!mObservingUpdates) {
-            mObserver.onChange(true);
+            mObserver.onChange(false);
         }
         return mLastTurn;
     }
@@ -369,7 +369,7 @@ public abstract class TurnBasedApp extends Multiplayer {
         @Override
         public void onChange(boolean selfChange) {
             updateState(selfChange);
-            if (!selfChange) attemptInterrupt();
+            attemptInterrupt();
         }
 
         void updateState(boolean explicitRequest) {

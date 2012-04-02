@@ -146,8 +146,14 @@ public class Musubi {
 
     public static Musubi forIntent(Context context, Intent intent) {
         Musubi m = new Musubi(context);
-        m.setDataFromIntent(intent);
+        if (intent != null) {
+            m.setDataFromIntent(intent);
+        }
         return m;
+    }
+
+    public static Musubi getInstance(Context context) {
+        return forIntent(context, null);
     }
 
     public void setFeed(DbFeed feed) {
