@@ -35,17 +35,19 @@ import android.net.Uri;
 public class DbObj implements SignedObj {
     private final Musubi mMusubi;
     private final String mAppId;
-    private final String mType;
-    private final String mName;
-    private final JSONObject mJson;
-    
-    private final byte[] mUniversalHash;
-    private final byte[] mRaw;
+    private final Long mParentId;
     private final long mLocalId;
     private final long mSenderId;
     private final Uri mFeedUri;
+
+    private final String mType;
+    private final JSONObject mJson;
+    private final byte[] mRaw;
     private final Integer mIntKey;
+    private final String mName;
+
     private final long mTimestamp;
+    private final byte[] mUniversalHash;
 
     public static final Uri OBJ_URI = Uri.parse("content://" + Musubi.AUTHORITY + "/objects");
     public static final String TABLE = "objects";
@@ -76,15 +78,15 @@ public class DbObj implements SignedObj {
     /**
      * @hide
      */
-    public DbObj(Musubi musubi, String appId, String type, String name, JSONObject json,
-            long localId, byte[] hash, byte[] raw, long senderId,
-            long feedId, Integer intKey, long timestamp) {
+    public DbObj(Musubi musubi, String appId, long feedId, Long parentId, long senderId, long localId, String type, JSONObject json,
+            byte[] raw, Integer intKey, String stringKey, long timestamp, byte[] hash) {
         mMusubi = musubi;
         mAppId = appId;
         mType = type;
-        mName = name;
+        mName = stringKey;
         mJson = json;
         mLocalId = localId;
+        mParentId = parentId;
         mUniversalHash = hash;
         mRaw = raw;
         mSenderId = senderId;
@@ -98,6 +100,11 @@ public class DbObj implements SignedObj {
     }
 
     @Override
+    public String getType() {
+        return mType;
+    }
+
+    @Override
     public JSONObject getJson() {
         return mJson;
     }
@@ -108,16 +115,25 @@ public class DbObj implements SignedObj {
     }
 
     @Override
-    public String getType() {
-        return mType;
+    public Integer getIntKey() {
+        return mIntKey;
+    }
+
+    @Override
+    public String getStringKey() {
+        return mName;
     }
     
     public String getName() {
     	return mName;
     }
 
+    public Long getParentId() {
+        return mParentId;
+    }
+
     /**
-     * Returns the parent feed that bounds this object.
+     * Returns the main feed that bounds this object.
      */
     public DbFeed getContainingFeed() {
         DbFeed f = null;
@@ -198,11 +214,6 @@ public class DbObj implements SignedObj {
         return mAppId;
     }
 
-    @Override
-    public Integer getIntKey() {
-        return mIntKey;
-    }
-
     public long getTimestamp() {
         return mTimestamp;
     }
@@ -241,10 +252,5 @@ public class DbObj implements SignedObj {
     @Override
     public String toString() {
         return getUri().toString() + ", " + getType() + ", " + getJson();
-    }
-
-    @Override
-    public String getStringKey() {
-        return mName;
     }
 }

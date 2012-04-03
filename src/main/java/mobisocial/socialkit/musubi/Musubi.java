@@ -180,6 +180,7 @@ public class Musubi {
             long feedId = -1;
             Integer intKey = null;
             long timestamp = -1;
+            Long parentId = null;
 
             try {
                 localId = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_ID));
@@ -219,20 +220,27 @@ public class Musubi {
             } catch (IllegalArgumentException e) {
             }
             try {
-                timestamp = cursor.getInt(cursor.getColumnIndexOrThrow(DbObj.COL_TIMESTAMP));
+                timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(DbObj.COL_TIMESTAMP));
+            } catch (IllegalArgumentException e) {
+            }
+            try {
+                int pIndex = cursor.getColumnIndexOrThrow(DbObj.COL_PARENT_ID);
+                if (!cursor.isNull(pIndex)) {
+                    parentId = cursor.getLong(pIndex);
+                }
             } catch (IllegalArgumentException e) {
             }
 
             // Don't require raw field.
             final byte[] raw;
             int rawIndex = cursor.getColumnIndex(DbObj.COL_RAW);
-            if (rawIndex == -1) {
+            if (rawIndex == -1 || cursor.isNull(rawIndex)) {
                 raw = null;
             } else {
                 raw = cursor.getBlob(cursor.getColumnIndexOrThrow(DbObj.COL_RAW));
             }
-            return new DbObj(this, appId, type, name, json, localId, hash, raw, senderId,
-                    feedId, intKey, timestamp);
+            return new DbObj(this, appId, feedId, parentId, senderId, localId, type, json, raw, intKey, name,
+                    timestamp, hash);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
@@ -245,7 +253,7 @@ public class Musubi {
                 new String[] {
                         DbObj.COL_APP_ID, DbObj.COL_TYPE, DbObj.COL_STRING_KEY, DbObj.COL_JSON,
                         DbObj.COL_RAW, DbObj.COL_IDENTITY_ID, DbObj.COL_UNIVERSAL_HASH,
-                        DbObj.COL_FEED_ID, DbObj.COL_INT_KEY, DbObj.COL_TIMESTAMP
+                        DbObj.COL_FEED_ID, DbObj.COL_INT_KEY, DbObj.COL_TIMESTAMP, DbObj.COL_PARENT_ID
                 }, DbObj.COL_ID + " = ?", new String[] { String.valueOf(localId) }, null);
         try {
             if (cursor == null || !cursor.moveToFirst()) {
@@ -253,20 +261,20 @@ public class Musubi {
                 return null;
             }
 
-            int q = 0;
-            final String appId = cursor.getString(q++);
-            final String type = cursor.getString(q++);
-            final String name = cursor.getString(q++);
-            final JSONObject json = new JSONObject(cursor.getString(q++));
-            final byte[] raw = cursor.getBlob(q++);
-            final long senderId = cursor.getLong(q++);
-            final byte[] hash = cursor.getBlob(q++);
-            final long feedId = cursor.getLong(q++);
-            final Integer intKey = cursor.getInt(q++);
-            final long timestamp = cursor.getLong(q++);
+            final String appId = cursor.getString(0);
+            final String type = cursor.getString(1);
+            final String name = cursor.getString(2);
+            final JSONObject json = new JSONObject(cursor.getString(3));
+            final byte[] raw = cursor.isNull(4) ? null : cursor.getBlob(4);
+            final long senderId = cursor.getLong(5);
+            final byte[] hash = cursor.getBlob(6);
+            final long feedId = cursor.getLong(7);
+            final Integer intKey = cursor.isNull(8) ? null : cursor.getInt(8);
+            final long timestamp = cursor.getLong(9);
+            Long parentId = cursor.isNull(10) ? null : cursor.getLong(10);
 
-            return new DbObj(this, appId, type, name, json, localId, hash, raw,
-                    senderId, feedId, intKey, timestamp);
+            return new DbObj(this, appId, feedId, parentId, senderId, localId, type, json, raw,
+                    intKey, name, timestamp, hash);
         } catch (JSONException e) {
             Log.e(TAG, "Couldn't parse obj.", e);
             return null;
