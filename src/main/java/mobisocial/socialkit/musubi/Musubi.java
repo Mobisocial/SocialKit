@@ -364,11 +364,13 @@ public class Musubi {
      * Returns the DbUser that is currently logged in to this app.
      */
     public DbIdentity userForLocalDevice(Uri feedUri) {
+        Uri uri;
         if (feedUri == null) {
-            feedUri = Musubi.uriForItem(DbThing.FEED, 0);
+            uri = uriForDir(DbThing.IDENTITY);
+        } else {
+            long feedId = ContentUris.parseId(feedUri);
+            uri = uriForItem(DbThing.MEMBER, feedId);
         }
-        Long feedId = Long.parseLong(feedUri.getLastPathSegment());
-        Uri uri = uriForItem(DbThing.MEMBER, feedId);
         String selection = DbIdentity.COL_OWNED + " = 1";
         String[] selectionArgs = null;
         String sortOrder = null;

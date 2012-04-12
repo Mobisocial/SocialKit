@@ -87,8 +87,24 @@ public final class DbFeed {
         };
     }
 
+    /**
+     * Returns the uri representing this feed.
+     * @see {@link #getObjectsUri()}
+     */
     public final Uri getUri() {
         return mFeedUri;
+    }
+
+    /**
+     * Returns a uri for querying over this feed's objects.
+     */
+    public final Uri getObjectsUri() {
+        Uri.Builder uri = Musubi.uriForDir(DbThing.OBJECT).buildUpon()
+                .appendQueryParameter(DbObj.COL_FEED_ID, ""+mFeedId);
+        if (mParentObjectId != null) {
+            uri.appendQueryParameter(DbObj.COL_PARENT_ID, "" + mParentObjectId);
+        }
+        return uri.build();
     }
 
     /**
@@ -144,13 +160,9 @@ public final class DbFeed {
      */
     public Cursor query(String[] projection, String selection, String[] selectionArgs,
             String order) {
-        Uri.Builder uri = Musubi.uriForDir(DbThing.OBJECT).buildUpon()
-                .appendQueryParameter(DbObj.COL_FEED_ID, ""+mFeedId);
-        if (mParentObjectId != null) {
-            uri.appendQueryParameter(DbObj.COL_PARENT_ID, "" + mParentObjectId);
-        }
+        Uri uri = getObjectsUri();
         Log.d(TAG, "querying objects of " + uri);
-        return mMusubi.getContext().getContentResolver().query(uri.build(), projection, selection,
+        return mMusubi.getContext().getContentResolver().query(uri, projection, selection,
                 selectionArgs, order);
     }
 
