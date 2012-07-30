@@ -34,6 +34,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.RemoteException;
 import android.util.Log;
 
 /**
@@ -420,6 +421,10 @@ public class Musubi {
             Message m = mHandler.obtainMessage();
             m.obj = i;
             mHandler.sendMessage(m);
+        }
+
+        public Uri insertSync(Uri uri, ContentValues cv) {
+        	return mContext.getContentResolver().insert(uri, cv);
         }
 
         private class Insertion {

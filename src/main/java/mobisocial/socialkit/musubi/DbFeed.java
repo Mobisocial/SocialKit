@@ -216,6 +216,12 @@ public final class DbFeed {
         mMusubi.getContentProviderThread().insert(objectsUri, values);
     }
 
+    public Uri postObjSync(Obj obj) {
+    	ContentValues values = DbObj.toContentValues(mFeedUri, mParentObjectId, obj);
+        Uri objectsUri = Musubi.uriForDir(DbThing.OBJECT);
+        return mMusubi.getContentProviderThread().insertSync(objectsUri, values);
+    }
+
     /**
      * Inserts an object into this feed on the current thread.
      */
