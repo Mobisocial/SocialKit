@@ -47,8 +47,8 @@ public class Musubi {
     /**
      * The name of the Musubi content provider.
      */
-    public static final String AUTHORITY = "org.musubi.db";
-    private static final String SUPER_APP_ID = "mobisocial.musubi";
+    public static final String AUTHORITY = "org.dispatch.db";
+    private static final String SUPER_APP_ID = "mobisocial.dispatch";
     public static final String EXTRA_FEED_URI = "feedUri";
     public static final String EXTRA_OBJ_URI = "objUri";
     
