@@ -17,6 +17,8 @@
 package mobisocial.socialkit.musubi;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 import mobisocial.socialkit.SQLClauseHelper;
 
@@ -51,7 +53,7 @@ public class Musubi {
     private static final String SUPER_APP_ID = "mobisocial.musubi";
     public static final String EXTRA_FEED_URI = "feedUri";
     public static final String EXTRA_OBJ_URI = "objUri";
-    
+
     private final Context mContext;
     private final ContentProviderThread mContentProviderThread;
     private DbFeed mFeed;
@@ -391,6 +393,40 @@ public class Musubi {
         }
     }
 
+    /**
+     * Returns all DbIdentities owned by the current user
+     */
+    public List<DbIdentity> users(Uri feedUri) {
+        Uri uri;
+        if (feedUri == null) {
+            uri = uriForDir(DbThing.IDENTITY);
+        } else {
+            long feedId = ContentUris.parseId(feedUri);
+            uri = uriForItem(DbThing.MEMBER, feedId);
+        }
+        String selection = DbIdentity.COL_OWNED + " = 1";
+        String[] selectionArgs = null;
+        String sortOrder = null;
+        Cursor c = mContext.getContentResolver().query(uri, DbIdentity.COLUMNS, selection,
+                selectionArgs, sortOrder);
+        try {
+            List<DbIdentity> identities = new LinkedList<DbIdentity>();
+            if (c == null || c.getCount() == 0) {
+                Log.w(TAG, "no local user for feed " + feedUri, new Throwable());
+                return identities;
+            }
+            while (c.moveToNext()) {
+                DbIdentity id = DbIdentity.fromStandardCursor(mContext, c);
+                identities.add(id);
+            }
+            return identities;
+        } finally {
+            if (c != null) {
+                c.close();
+            }
+        }
+    }
+
     public Cursor queryAppData(String[] projection, String selection, String[] selectionArgs,
             String sortOrder) {
         String pkg = mContext.getPackageName();
@@ -482,7 +518,7 @@ public class Musubi {
         return "vnd.musubi.obj/" + musubiType;
     }
 
-    public enum DbThing { 
+    public enum DbThing {
         OBJECT, FEED, IDENTITY, MEMBER;
 
         @Override
