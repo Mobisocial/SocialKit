@@ -104,6 +104,18 @@ public class Musubi {
         }
         mContentProviderThread = new ContentProviderThread();
         mContentProviderThread.start();
+        if (mContentProviderThread.mHandler == null) {
+            synchronized(this) {
+                while (mContentProviderThread.mHandler == null) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        continue;
+                    }
+                }
+            }
+        }
+
         mContactUpdateObserver = new ContentObserver(mContentProviderThread.mHandler) {
             @Override
             public void onChange(boolean selfChange) {
@@ -439,15 +451,22 @@ public class Musubi {
     class ContentProviderThread extends Thread {
         public Handler mHandler;
 
-        public void run() {
-            Looper.prepare();
-
-            mHandler = new Handler() {
+        private Handler createHandler() {
+            return new Handler() {
                 public void handleMessage(Message msg) {
                     Insertion i = (Insertion) msg.obj;
                     mContext.getContentResolver().insert(i.uri, i.cv);
                 }
             };
+        }
+
+        public void run() {
+            Looper.prepare();
+
+            synchronized(Musubi.this) {
+                mHandler = createHandler();
+                Musubi.this.notify();
+            }
 
             Looper.loop();
         }
